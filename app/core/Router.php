@@ -47,6 +47,7 @@ class Router {
      * outro método HTTP, responde 405; se não existir, responde 404.
      */
     public static function despachar(array $rotas, string $metodo, string $caminho): void {
+        // 1) Correspondência exata
         $chave = $metodo . ' ' . $caminho;
 
         if (isset($rotas[$chave])) {
@@ -55,7 +56,24 @@ class Router {
             return;
         }
 
-        // O caminho existe, mas não neste método HTTP: 405 em vez de 404
+        // 2) Rotas com parâmetro dinâmico, ex: 'GET /checkout/{codigo}'
+        foreach ($rotas as $definicao => $handler) {
+            [$metodoRota, $rota] = explode(' ', $definicao, 2);
+
+            if ($metodoRota !== $metodo || strpos($rota, '{') === false) {
+                continue;
+            }
+
+            $parametros = self::casarParametros($rota, $caminho);
+
+            if ($parametros !== null) {
+                [$classe, $acao] = $handler;
+                (new $classe())->{$acao}(...$parametros);
+                return;
+            }
+        }
+
+        // 3) O caminho existe, mas não neste método HTTP: 405 em vez de 404
         $permitidos = self::metodosPermitidos($rotas, $caminho);
 
         if (!empty($permitidos)) {
@@ -68,12 +86,50 @@ class Router {
         (new HomeController())->naoEncontrado();
     }
 
+    /**
+     * Compara um padrão com parâmetros contra o caminho requisitado.
+     * Cada `{nome}` casa com um único segmento da URL.
+     *
+     * @return array|null Valores capturados, ou null se o padrão não casar.
+     */
+    private static function casarParametros(string $padrao, string $caminho): ?array {
+        $segmentosPadrao = explode('/', trim($padrao, '/'));
+        $segmentosCaminho = explode('/', trim($caminho, '/'));
+
+        if (count($segmentosPadrao) !== count($segmentosCaminho)) {
+            return null;
+        }
+
+        $valores = [];
+
+        foreach ($segmentosPadrao as $i => $segmento) {
+            $ehParametro = strlen($segmento) > 2
+                && $segmento[0] === '{'
+                && substr($segmento, -1) === '}';
+
+            if ($ehParametro) {
+                if ($segmentosCaminho[$i] === '') {
+                    return null;
+                }
+                $valores[] = urldecode($segmentosCaminho[$i]);
+                continue;
+            }
+
+            if ($segmento !== $segmentosCaminho[$i]) {
+                return null;
+            }
+        }
+
+        return $valores;
+    }
+
     private static function metodosPermitidos(array $rotas, string $caminho): array {
         $metodos = [];
 
         foreach (array_keys($rotas) as $chave) {
             [$metodo, $rota] = explode(' ', $chave, 2);
-            if ($rota === $caminho) {
+
+            if ($rota === $caminho || (strpos($rota, '{') !== false && self::casarParametros($rota, $caminho) !== null)) {
                 $metodos[] = $metodo;
             }
         }

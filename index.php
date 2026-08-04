@@ -49,6 +49,16 @@ $rotas = [
     // Público
     'GET /'                    => [HomeController::class, 'index'],
 
+    // Wizard de agendamento
+    'GET /agendar'             => [AgendamentoController::class, 'passoServicos'],
+    'POST /agendar/servicos'   => [AgendamentoController::class, 'salvarServicos'],
+    'GET /agendar/horario'     => [AgendamentoController::class, 'passoHorario'],
+    'POST /agendar/horario'    => [AgendamentoController::class, 'salvarHorario'],
+    'GET /agendar/revisao'     => [AgendamentoController::class, 'passoRevisao'],
+    'POST /agendar/confirmar'  => [AgendamentoController::class, 'confirmar'],
+    'GET /api/horarios'        => [AgendamentoController::class, 'apiHorarios'],
+    'GET /checkout/{codigo}'   => [AgendamentoController::class, 'checkout'],
+
     // Autenticação
     'GET /login'               => [AuthController::class, 'formLogin'],
     'POST /login'              => [AuthController::class, 'login'],

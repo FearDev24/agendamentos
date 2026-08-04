@@ -1,31 +1,113 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
-    <div class="p-5 mb-4 rounded-3 style-card-hero text-center">
-        <img src="<?= $baseUrl ?>/public/assets/img/logojablonskiprincipal.png" alt="" class="mb-4" style="max-height: 120px;">
-        <h1 class="display-5 fw-bold text-gold">Bem-vindo ao <?= htmlspecialchars($config['app']['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-        <p class="fs-5 text-muted-custom mb-4">Agendamento e gestão integrada para barbearias e estética</p>
-        <a href="<?= $baseUrl ?>/agendar" class="btn btn-gold btn-lg px-5">Agendar Horário</a>
-    </div>
+<main class="flex-grow-1">
+    <!-- Hero -->
+    <section class="container py-5">
+        <div class="p-5 rounded-3 style-card-hero text-center">
+            <img src="<?= $baseUrl ?>/public/assets/img/logojablonskiprincipal.png" alt="" class="mb-4" style="max-height: 110px;">
+            <h1 class="display-5 fw-bold text-gold mb-3">
+                <?= htmlspecialchars($ajustes['estabelecimento_nome'] ?? 'AgendaBarber', ENT_QUOTES, 'UTF-8') ?>
+            </h1>
+            <p class="fs-5 text-muted-custom mb-4">
+                Escolha seus serviços, seu profissional e garanta seu horário em poucos cliques.
+            </p>
+            <a href="<?= $baseUrl ?>/agendar" class="btn btn-gold btn-lg px-5">Agendar Horário</a>
+        </div>
+    </section>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="style-card h-100 p-4">
-                <h2 class="h5 text-gold">Escolha seus serviços</h2>
-                <p class="text-muted-custom mb-0">Selecione um ou mais serviços e veja o valor e a duração calculados na hora.</p>
+    <!-- Serviços -->
+    <section class="container py-4">
+        <h2 class="h4 text-gold mb-1">Nossos Serviços</h2>
+        <p class="text-muted-custom mb-4">Preços e durações atualizados.</p>
+
+        <?php if (empty($servicos)): ?>
+            <div class="style-card p-4">
+                <p class="text-muted-custom mb-0">Nenhum serviço disponível no momento.</p>
+            </div>
+        <?php else: ?>
+            <div class="row g-3">
+                <?php foreach ($servicos as $s): ?>
+                    <div class="col-md-6 col-lg-4">
+                        <article class="style-card h-100 p-4 d-flex flex-column">
+                            <h3 class="h6 text-gold mb-2"><?= htmlspecialchars($s['nome'], ENT_QUOTES, 'UTF-8') ?></h3>
+
+                            <?php if (!empty($s['descricao'])): ?>
+                                <p class="text-muted-custom flex-grow-1"><?= htmlspecialchars($s['descricao'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <?php else: ?>
+                                <div class="flex-grow-1"></div>
+                            <?php endif; ?>
+
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="dado-numerico text-muted-custom"><?= (int)$s['duracao_minutos'] ?> min</span>
+                                <strong class="dado-numerico text-gold fs-5"><?= FormatHelper::currency((float)$s['preco']) ?></strong>
+                            </div>
+                        </article>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </section>
+
+    <!-- Profissionais -->
+    <?php if (!empty($profissionais)): ?>
+    <section class="container py-4">
+        <h2 class="h4 text-gold mb-1">Nossa Equipe</h2>
+        <p class="text-muted-custom mb-4">Escolha o profissional da sua preferência.</p>
+
+        <div class="row g-3">
+            <?php foreach ($profissionais as $p): ?>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <article class="style-card h-100 p-4 text-center">
+                        <?php if (!empty($p['foto'])): ?>
+                            <img src="<?= $baseUrl ?>/public/uploads/perfis/<?= htmlspecialchars($p['foto'], ENT_QUOTES, 'UTF-8') ?>"
+                                 alt="" class="rounded-circle mb-3" style="width:72px;height:72px;object-fit:cover;">
+                        <?php else: ?>
+                            <span class="avatar-iniciais mb-3" style="width:72px;height:72px;font-size:28px;" aria-hidden="true">
+                                <?= strtoupper(mb_substr($p['nome'], 0, 1)) ?>
+                            </span>
+                        <?php endif; ?>
+
+                        <h3 class="h6 text-on-surface mb-0"><?= htmlspecialchars($p['nome'], ENT_QUOTES, 'UTF-8') ?></h3>
+                    </article>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- Sobre e contato -->
+    <section class="container py-4 pb-5">
+        <div class="style-card p-4">
+            <h2 class="h5 text-gold mb-3">Onde Estamos</h2>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <span class="label-caps text-muted-custom d-block">ENDEREÇO</span>
+                        <?= htmlspecialchars($ajustes['estabelecimento_endereco'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                    <p class="mb-0">
+                        <span class="label-caps text-muted-custom d-block">HORÁRIO DE FUNCIONAMENTO</span>
+                        <?= htmlspecialchars($ajustes['horario_funcionamento'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <span class="label-caps text-muted-custom d-block">TELEFONE</span>
+                        <?= htmlspecialchars($ajustes['estabelecimento_telefone'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                    <p class="mb-0">
+                        <span class="label-caps text-muted-custom d-block">E-MAIL</span>
+                        <?= htmlspecialchars($ajustes['estabelecimento_email'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+
+                    <?php if (!empty($ajustes['estabelecimento_mapa_url'])): ?>
+                        <a href="<?= htmlspecialchars($ajustes['estabelecimento_mapa_url'], ENT_QUOTES, 'UTF-8') ?>"
+                           target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold mt-3">Ver no mapa</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="style-card h-100 p-4">
-                <h2 class="h5 text-gold">Horário garantido</h2>
-                <p class="text-muted-custom mb-0">Pagamento antecipado por Pix ou cartão reserva o seu lugar na agenda.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="style-card h-100 p-4">
-                <h2 class="h5 text-gold">Tudo em um lugar</h2>
-                <p class="text-muted-custom mb-0">Comprovantes, reagendamentos e histórico de atendimentos na sua conta.</p>
-            </div>
-        </div>
-    </div>
+    </section>
 </main>

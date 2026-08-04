@@ -19,6 +19,20 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-04 - Retorno pós-login perdia o fluxo de agendamento
+
+- Sintoma: O cliente não logado que preenchia todo o wizard e clicava em "Ir para Pagamento" era levado ao login e, após autenticar, caía em `/cliente/agendamentos` em vez de voltar à revisão do agendamento.
+- Causa: `AgendamentoController::confirmar()` gravava a URL **absoluta** (`http://localhost/sistemaBarbearia/agendar/revisao`) em `url_pretendida`. A proteção contra open redirect do `AuthController::rotaRelativa()` descarta corretamente qualquer URL absoluta, então o destino era ignorado.
+- Solução aplicada: Passou-se a gravar a rota em formato relativo (`/agendar/revisao`), como já fazia o `AuthHelper::requireAuth()`.
+- Como evitar no futuro: `url_pretendida` só aceita caminhos relativos. Nunca concatenar `$this->baseUrl` ao gravar essa chave.
+
+## 2026-08-04 - Testes quebravam a cada nova migration ou configuração
+
+- Sintoma: O teste da Fase 2 falhou duas vezes sem que houvesse defeito: ao adicionar a migration 003 (contagem fixa de 2 migrations) e a 004 (contagem fixa de 17 configurações).
+- Causa: Asserções com valores absolutos sobre dados que crescem naturalmente a cada fase.
+- Solução aplicada: A contagem de migrations passou a comparar com os arquivos disponíveis, e a de configurações passou a exigir um mínimo em vez de igualdade.
+- Como evitar no futuro: Em dados incrementais, testar propriedades (presença das chaves obrigatórias, mínimo esperado) e não totais fixos.
+
 ## 2026-08-04 - Pasta `app/` sem `.htaccess` de proteção
 
 - Sintoma: Os arquivos de `app/controllers/`, `app/models/` e `app/helpers/` ficavam acessíveis por URL direta, contrariando o `docs/FSD.md` seção 5.

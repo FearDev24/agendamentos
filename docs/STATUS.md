@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 04/08/2026  
-**Estado Atual**: Fase 4 (Cadastros Administrativos Base) Concluída. Sistema com CRUD de serviços, gestão de profissionais com jornada semanal e serviços executados, e bloqueios de agenda. Baterias de teste: 111 (Fase 2) + 149 (Fase 3) + 128 (Fase 4) = **388 testes passando**.
+**Estado Atual**: Fase 5 (Motor de Disponibilidade e Agendamento Público) Concluída. Vitrine pública, wizard de agendamento em 3 passos, cálculo de horários livres em tempo real e reserva temporária de 10 minutos. Baterias de teste: 111 (Fase 2) + 149 (Fase 3) + 128 (Fase 4) + 153 (Fase 5) = **541 testes passando**.
 
 ---
 
@@ -11,7 +11,7 @@
 - [x] **Fase 2 - Banco de Dados e Sistema de Migrations** *(Concluída em 04/08/2026)*
 - [x] **Fase 3 - Módulo de Autenticação, Sessões e Controle de Acesso (RBAC)** *(Concluída em 04/08/2026)*
 - [x] **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)** *(Concluída em 04/08/2026)*
-- [ ] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público**
+- [x] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público** *(Concluída em 04/08/2026)*
 - [ ] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária**
 - [ ] **Fase 7 - Áreas Restritas do Cliente e do Profissional**
 - [ ] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
@@ -21,9 +21,53 @@
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 4 - Cadastros Administrativos Base
-- **Fase Pendente**: **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público**
-- **Próximo Passo Recomendado**: Construir o motor de cálculo de horários livres em `AgendamentoModel.php` (considerando múltiplos serviços, duração somada, intervalo de 10 min, jornada, almoço, bloqueios e limite diário), a Vitrine Pública e o Wizard de agendamento em 3 passos.
+- **Fase Concluída**: Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público
+- **Fase Pendente**: **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária**
+- **Próximo Passo Recomendado**: Integrar o SDK do Mercado Pago (Pix QR Code e Cartão), criar a classe simuladora Sandbox para testes locais e o `WebhookController.php` idempotente que confirma o agendamento no retorno do pagamento.
+
+---
+
+## Entregas da Fase 5 (04/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `app/models/AgendamentoModel.php` | Motor de disponibilidade e criação da reserva temporária |
+| `app/models/SettingModel.php` | Leitura em cache de `system_settings` com padrões |
+| `app/controllers/AgendamentoController.php` | Vitrine, wizard em 3 passos, API de horários e checkout |
+| `app/views/public/home.php` | Vitrine com serviços, equipe, endereço e contato |
+| `app/views/public/agendar_servicos.php` | Passo 1 com soma dinâmica de valor e duração |
+| `app/views/public/agendar_horario.php` | Passo 2 com grade de horários via AJAX |
+| `app/views/public/agendar_revisao.php` | Passo 3 com resumo, orientações e políticas |
+| `app/views/public/checkout.php` | Comprovante da reserva e cronômetro regressivo |
+| `public/assets/js/agendamento.js` | Soma dinâmica, Fetch da grade e cronômetro |
+| `database/migrations/004_add_passo_agendamento.php` | Passo da grade de horários (15 min) |
+| `tests/teste_fase5.php` | 153 testes de validação da Fase 5 |
+
+### Rotas adicionadas
+`/agendar` · `/agendar/servicos` · `/agendar/horario` · `/agendar/revisao` · `/agendar/confirmar` · `/api/horarios` · `/checkout/{codigo}`
+
+O roteador passou a aceitar **parâmetros dinâmicos** (`{codigo}`), necessários para a URL de checkout definida no FSD.
+
+### Regras do motor de disponibilidade
+- Soma das durações dos serviços selecionados;
+- Intervalo obrigatório de 10 minutos entre atendimentos (nos dois sentidos);
+- Jornada semanal com o intervalo de almoço recortado da janela;
+- Bloqueios individuais e de todo o estabelecimento, inclusive parciais;
+- Reservas ainda no prazo ocupam horário; reservas vencidas liberam automaticamente;
+- Limite diário de atendimentos por profissional;
+- Antecedência mínima de 2 horas e máxima de 30 dias;
+- "Qualquer profissional disponível" atribui o primeiro livre a cada horário;
+- Apenas profissionais que executam **todos** os serviços escolhidos são oferecidos;
+- Preços e durações são **congelados** em `agendamento_servicos` na contratação.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase5.php
+```
+
+### Pendência conhecida
+Para o fluxo público gerar horários é necessário **cadastrar ao menos um profissional** com jornada semanal e serviços vinculados em `/admin/profissionais`. O banco de desenvolvimento hoje possui apenas os 6 serviços do seeding e o administrador padrão.
 
 ---
 

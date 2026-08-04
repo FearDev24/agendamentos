@@ -363,3 +363,159 @@ textarea.campo-form {
   font-size: 12px;
   padding: 0.25rem 0.6rem;
 }
+
+/* ==========================================================================
+   Componentes - Fase 5 (Wizard de agendamento e checkout)
+   ========================================================================== */
+
+/* Indicador de progresso dos passos */
+.passos-wizard .passo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-outline-variant);
+  background-color: var(--color-surface-low);
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+}
+
+.passo-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background-color: var(--color-surface-highest);
+  color: var(--color-on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.passo-atual {
+  border-color: var(--color-primary);
+  background-color: rgba(233, 193, 118, 0.10);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.passo-atual .passo-numero {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+}
+
+.passo-concluido {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.passo-concluido .passo-numero {
+  background-color: rgba(129, 199, 132, 0.2);
+  color: var(--color-success);
+}
+
+@media (max-width: 575px) {
+  .passo-rotulo { display: none; }
+  .passos-wizard .passo { justify-content: center; }
+}
+
+/* Cartão selecionável de serviço (Passo 1) */
+.cartao-servico {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+  background-color: var(--color-surface-low);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.cartao-servico:hover {
+  border-color: var(--color-primary);
+}
+
+.cartao-servico-ativo {
+  border-color: var(--color-primary);
+  background-color: rgba(233, 193, 118, 0.10);
+}
+
+/* Barra inferior fixa com o total (Passo 1) */
+.barra-total {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 0.75rem 0;
+  background-color: var(--color-surface-container);
+  border-top: 1px solid var(--color-primary);
+}
+
+/* Grade de horários (Passo 2) */
+.lista-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 0.5rem;
+}
+
+.botao-horario {
+  padding: 0.55rem 0.25rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+  background-color: var(--color-surface-low);
+  color: var(--color-on-surface);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.botao-horario:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(233, 193, 118, 0.12);
+  color: var(--color-primary);
+}
+
+/* Cronômetro do checkout */
+.cronometro {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  display: block;
+}
+
+.cronometro-alerta { color: var(--color-error) !important; }
+.cronometro-esgotado { color: var(--color-outline) !important; }
+
+/* Etiquetas das situações de agendamento */
+.etiqueta-aguardando_pagamento {
+  background-color: rgba(233, 193, 118, 0.14);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.etiqueta-confirmado,
+.etiqueta-concluido {
+  background-color: rgba(129, 199, 132, 0.14);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.etiqueta-cancelado,
+.etiqueta-falta {
+  background-color: rgba(255, 180, 171, 0.14);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.etiqueta-reembolsado {
+  background-color: rgba(190, 200, 209, 0.14);
+  border-color: var(--color-tertiary);
+  color: var(--color-tertiary);
+}

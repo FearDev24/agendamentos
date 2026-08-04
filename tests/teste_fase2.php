@@ -195,7 +195,9 @@ $t->verificar('password_verify() valida a senha padrão "Admin@123"',
 
 $t->igual('Categorias de despesas cadastradas', 10, (int)$pdo->query('SELECT COUNT(*) FROM categorias_despesas')->fetchColumn());
 $t->igual('Serviços base cadastrados', 6, (int)$pdo->query("SELECT COUNT(*) FROM servicos WHERE status = 'ativo'")->fetchColumn());
-$t->igual('Configurações globais em system_settings', 17, (int)$pdo->query('SELECT COUNT(*) FROM system_settings')->fetchColumn());
+// Comparação por limite mínimo: fases seguintes podem acrescentar configurações
+$totalSettings = (int)$pdo->query('SELECT COUNT(*) FROM system_settings')->fetchColumn();
+$t->verificar('Configurações globais do seeding presentes (mínimo 17)', $totalSettings >= 17, (string)$totalSettings);
 
 $settings = $pdo->query('SELECT chave, valor FROM system_settings')->fetchAll(PDO::FETCH_KEY_PAIR);
 $t->igual('Regra: reserva de checkout = 10 minutos', '10', $settings['checkout_reserva_minutos'] ?? null);
