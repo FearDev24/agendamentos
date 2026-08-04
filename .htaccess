@@ -1,0 +1,23 @@
+# Apache Server Rewrite Rules - AgendaBarber Web
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /sistemaBarbearia/
+
+    # Redireciona requisições de arquivos e diretórios existentes diretamente para public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Reescreve todas as outras rotas para o Front Controller index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Desativa a listagem pública de diretórios
+Options -Indexes
+
+# Adiciona cabeçalhos de segurança básicos
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

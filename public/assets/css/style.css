@@ -1,0 +1,110 @@
+/* ==========================================================================
+   AgendaBarber Web - Design Tokens & Styles (Elevated Grooming & Wellness)
+   ========================================================================== */
+
+:root {
+  /* Surface & Base Backgrounds */
+  --color-surface: #0f1416;
+  --color-surface-dim: #0f1416;
+  --color-surface-bright: #353a3c;
+  --color-surface-lowest: #0a0f11;
+  --color-surface-low: #171c1e;
+  --color-surface-container: #1b2022;
+  --color-surface-high: #262b2d;
+  --color-surface-highest: #303638;
+
+  /* Text & Content */
+  --color-on-surface: #dfe3e6;
+  --color-on-surface-variant: #d1c5b4;
+  --color-outline: #9a8f80;
+  --color-outline-variant: #4e4639;
+
+  /* Primary Accent: Bronze / Gold */
+  --color-primary: #e9c176;
+  --color-primary-container: #c5a059;
+  --color-on-primary: #412d00;
+  --color-on-primary-container: #4e3700;
+
+  /* Secondary & Tertiary */
+  --color-secondary: #c1c8ca;
+  --color-secondary-container: #434a4c;
+  --color-tertiary: #bec8d1;
+
+  /* Functional / Status */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-success: #81c784;
+
+  /* Typography Fonts */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Base Reset & Typography */
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  margin: 0;
+  padding: 0;
+}
+
+/* Color Utility Classes */
+.bg-surface { background-color: var(--color-surface) !important; }
+.bg-surface-container { background-color: var(--color-surface-container) !important; }
+.bg-surface-container-low { background-color: var(--color-surface-low) !important; }
+.bg-surface-high { background-color: var(--color-surface-high) !important; }
+.text-gold { color: var(--color-primary) !important; }
+.text-on-surface { color: var(--color-on-surface) !important; }
+.text-muted-custom { color: var(--color-on-surface-variant) !important; }
+.border-secondary-dark { border-color: var(--color-outline-variant) !important; }
+
+/* Buttons */
+.btn-gold {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+  border: 1px solid var(--color-primary);
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.btn-gold:hover {
+  background-color: var(--color-primary);
+  color: #000;
+}
+
+.btn-outline-gold {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.btn-outline-gold:hover {
+  background-color: var(--color-primary);
+  color: #000;
+}
+
+/* Custom Cards */
+.style-card-hero {
+  background-color: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 6px;
+}
+
+.hover-gold:hover {
+  color: var(--color-primary) !important;
+}
+
+.label-caps {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Badges */
+.bg-bronze {
+  background-color: var(--color-primary-container) !important;
+  color: #000 !important;
+  font-weight: 600;
+}

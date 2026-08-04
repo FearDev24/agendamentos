@@ -1,0 +1,434 @@
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Royal Grooming - Gerenciar Serviços</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#283139",
+                    "outline": "#9a8f80",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#434a4c",
+                    "on-secondary-fixed-variant": "#41484a",
+                    "on-tertiary-fixed-variant": "#3f4850",
+                    "surface-container": "#1b2022",
+                    "secondary-fixed": "#dde4e6",
+                    "primary-fixed": "#ffdea5",
+                    "on-background": "#dfe3e6",
+                    "on-secondary-container": "#b2babc",
+                    "surface-container-low": "#171c1e",
+                    "background": "#0f1416",
+                    "inverse-primary": "#775a19",
+                    "on-secondary-fixed": "#161d1f",
+                    "inverse-surface": "#dfe3e6",
+                    "surface-container-high": "#262b2d",
+                    "tertiary-fixed": "#dae4ed",
+                    "tertiary": "#bec8d1",
+                    "primary": "#e9c176",
+                    "surface-tint": "#e9c176",
+                    "secondary": "#c1c8ca",
+                    "surface-bright": "#353a3c",
+                    "surface-variant": "#303638",
+                    "on-surface-variant": "#d1c5b4",
+                    "outline-variant": "#4e4639",
+                    "on-primary": "#412d00",
+                    "tertiary-container": "#9da6af",
+                    "on-primary-fixed-variant": "#5d4201",
+                    "primary-fixed-dim": "#e9c176",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#303638",
+                    "on-primary-container": "#4e3700",
+                    "on-primary-fixed": "#261900",
+                    "secondary-fixed-dim": "#c1c8ca",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#0a0f11",
+                    "surface-dim": "#0f1416",
+                    "on-tertiary-fixed": "#141d23",
+                    "tertiary-fixed-dim": "#bec8d1",
+                    "on-error": "#690005",
+                    "surface": "#0f1416",
+                    "on-secondary": "#2b3234",
+                    "on-surface": "#dfe3e6",
+                    "primary-container": "#c5a059",
+                    "on-tertiary-container": "#333c43",
+                    "inverse-on-surface": "#2c3133"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "container-margin": "16px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "gutter": "12px",
+                    "sm": "12px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "data-mono": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4e4639;
+            border-radius: 10px;
+        }
+        .bento-card {
+            background-color: #1e272e;
+            border: 1px solid #3d4446;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bento-card:hover {
+            border-color: #e9c176;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background border-b border-outline-variant flex justify-between items-center px-container-margin h-16 w-full docked full-width top-0 sticky z-50">
+<div class="flex items-center gap-md">
+<button class="md:hidden p-xs hover:bg-surface-container-high transition-colors text-primary" id="mobile-menu-btn">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary tracking-tight">Gerenciar Serviços</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex gap-md mr-lg">
+<span class="text-primary font-bold cursor-pointer transition-colors hover:opacity-80">Serviços</span>
+<span class="text-on-surface-variant cursor-pointer transition-colors hover:text-on-surface">Agendamentos</span>
+<span class="text-on-surface-variant cursor-pointer transition-colors hover:text-on-surface">Clientes</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A sophisticated headshot of a professional barbershop administrator in a high-end salon. The background is softly blurred showing dark wood panels and gold accents. The administrator is wearing a clean, modern black vest over a white shirt, looking directly at the camera with professional confidence. Dramatic side lighting highlights the premium atmosphere of the Royal Grooming establishment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANgX3c1EN4mkpmaWrmDkZykME-IPuPkE4Al7_z9mucsEQ8JiMIQ76wNUZ8XbKJ7_gqzaRrNA40TqFfvyREM-3lzmPIMlFcLVShPvjtFB6BFJAtNYYTut2E3qgH5oNAlMVKqQHRqgO_45lClLH93CFmg6Tv4pL-SUva0ZW43yuuV2LUY4CflByHqlaMHchBIPEaM51lGeuQA_bEdGNV2v3JPIv9kghfLT5Q-3dw30dMvA9bm4gmyFyn">
+</div>
+</div>
+</header>
+<div class="flex min-h-[calc(100vh-64px)]">
+<!-- NavigationDrawer (Desktop Sidebar) -->
+<aside class="hidden md:flex fixed inset-y-0 left-0 w-[240px] z-50 flex-col h-full py-lg bg-surface-container dark:bg-surface-container border-r border-outline-variant shadow-lg mt-16">
+<nav class="flex flex-col gap-xs">
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-body-md font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="text-body-md font-body-md">Appointments</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-body-md font-body-md">Expenses</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="text-body-md font-body-md">Categories</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-primary bg-primary/10 border-l-[3px] border-primary font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="content_cut">content_cut</span>
+<span class="text-body-md font-body-md">Services</span>
+</a>
+</nav>
+<div class="mt-auto px-md pb-xl">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-10 h-10 rounded-lg bg-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="shield_person">shield_person</span>
+</div>
+<div>
+<p class="text-label-caps font-label-caps text-on-surface">ADMIN PANEL</p>
+<p class="text-[10px] text-on-surface-variant">v1.0.4</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[240px] p-container-margin md:p-lg lg:p-xl w-full max-w-7xl mx-auto">
+<!-- Header Section with Search & Action -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-xl">
+<div class="space-y-1">
+<h2 class="text-headline-md font-headline-md text-on-surface">Catálogo de Serviços</h2>
+<p class="text-body-md text-on-surface-variant">Gerencie os preços e durações dos serviços oferecidos.</p>
+</div>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg flex items-center justify-center gap-xs font-semibold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                    Adicionar Novo Serviço
+                </button>
+</div>
+<!-- Filter & Search Bar -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-md mb-lg">
+<div class="md:col-span-8 relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container border border-outline-variant text-on-surface rounded-lg pl-xl pr-md py-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50" placeholder="Buscar por nome do serviço..." type="text">
+</div>
+<div class="md:col-span-4 relative">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline-variant" data-icon="filter_list">filter_list</span>
+<select class="w-full bg-surface-container border border-outline-variant text-on-surface rounded-lg pl-xl pr-md py-sm appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none cursor-pointer">
+<option>Todas as Categorias</option>
+<option>Cabelo</option>
+<option>Barba</option>
+<option>Estética</option>
+<option>Manicure</option>
+</select>
+</div>
+</div>
+<!-- Services Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-md md:gap-lg">
+<!-- Service Item 1 -->
+<div class="bento-card p-md md:p-lg rounded-xl flex items-center gap-md">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="content_cut">content_cut</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-xs mb-1">
+<h3 class="text-body-lg font-semibold text-on-surface truncate">Corte de Cabelo</h3>
+<span class="text-primary font-data-mono">R$ 65,00</span>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant text-body-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                                45 min
+                            </div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="sell">sell</span>
+                                Cabelo
+                            </div>
+</div>
+</div>
+<div class="flex flex-col gap-xs shrink-0">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Service Item 2 -->
+<div class="bento-card p-md md:p-lg rounded-xl flex items-center gap-md">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="face">face</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-xs mb-1">
+<h3 class="text-body-lg font-semibold text-on-surface truncate">Barba Completa</h3>
+<span class="text-primary font-data-mono">R$ 45,00</span>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant text-body-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                                30 min
+                            </div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="sell">sell</span>
+                                Barba
+                            </div>
+</div>
+</div>
+<div class="flex flex-col gap-xs shrink-0">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Service Item 3 -->
+<div class="bento-card p-md md:p-lg rounded-xl flex items-center gap-md">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="cleaning_services">cleaning_services</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-xs mb-1">
+<h3 class="text-body-lg font-semibold text-on-surface truncate">Sobrancelha</h3>
+<span class="text-primary font-data-mono">R$ 25,00</span>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant text-body-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                                15 min
+                            </div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="sell">sell</span>
+                                Estética
+                            </div>
+</div>
+</div>
+<div class="flex flex-col gap-xs shrink-0">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Service Item 4 -->
+<div class="bento-card p-md md:p-lg rounded-xl flex items-center gap-md">
+<div class="w-16 h-16 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="pan_tool">pan_tool</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-xs mb-1">
+<h3 class="text-body-lg font-semibold text-on-surface truncate">Manicure</h3>
+<span class="text-primary font-data-mono">R$ 50,00</span>
+</div>
+<div class="flex items-center gap-md text-on-surface-variant text-body-md">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                                40 min
+                            </div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="sell">sell</span>
+                                Manicure
+                            </div>
+</div>
+</div>
+<div class="flex flex-col gap-xs shrink-0">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Empty State Suggestion or more items would follow -->
+<div class="lg:col-span-2 border-2 border-dashed border-outline-variant/30 rounded-xl p-xl flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary" data-icon="add_circle">add_circle</span>
+</div>
+<h4 class="text-body-lg font-semibold">Novo Serviço Personalizado</h4>
+<p class="text-body-md text-on-surface-variant">Adicione combinações ou serviços sazonais</p>
+</div>
+</div>
+<!-- Footer Stats -->
+<div class="mt-xl grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<p class="text-label-caps text-on-surface-variant mb-base">TOTAL DE SERVIÇOS</p>
+<p class="text-headline-sm text-primary">12 Ativos</p>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<p class="text-label-caps text-on-surface-variant mb-base">CATEGORIAS</p>
+<p class="text-headline-sm text-primary">4 Ativas</p>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg border border-outline-variant/20">
+<p class="text-label-caps text-on-surface-variant mb-base">PREÇO MÉDIO</p>
+<p class="text-headline-sm text-primary">R$ 46,25</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Drawer Overlay -->
+<div class="fixed inset-0 z-[60] hidden" id="mobile-drawer">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="drawer-backdrop"></div>
+<aside class="absolute inset-y-0 left-0 w-[280px] bg-surface-container shadow-2xl flex flex-col py-lg">
+<div class="px-md mb-xl flex items-center justify-between">
+<h2 class="text-headline-sm font-bold text-primary">Royal Grooming</h2>
+<button class="p-xs text-on-surface-variant" id="close-drawer">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<nav class="flex flex-col gap-xs">
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-primary bg-primary/10 border-l-[3px] border-primary font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="content_cut">content_cut</span>
+<span>Serviços</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span>Agendamentos</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Financeiro</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Configurações</span>
+</a>
+</nav>
+</aside>
+</div>
+<script>
+        // Drawer Toggle Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileDrawer = document.getElementById('mobile-drawer');
+        const closeDrawer = document.getElementById('close-drawer');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function toggleDrawer() {
+            mobileDrawer.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleDrawer);
+        closeDrawer.addEventListener('click', toggleDrawer);
+        drawerBackdrop.addEventListener('click', toggleDrawer);
+
+        // Simple Search Interactivity
+        const searchInput = document.querySelector('input[type="text"]');
+        const serviceCards = document.querySelectorAll('.bento-card');
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            serviceCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                if (title.includes(term)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body></html>

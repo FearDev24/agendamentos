@@ -1,0 +1,426 @@
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Royal Grooming - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#283139",
+                    "outline": "#9a8f80",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#434a4c",
+                    "on-secondary-fixed-variant": "#41484a",
+                    "on-tertiary-fixed-variant": "#3f4850",
+                    "surface-container": "#1b2022",
+                    "secondary-fixed": "#dde4e6",
+                    "primary-fixed": "#ffdea5",
+                    "on-background": "#dfe3e6",
+                    "on-secondary-container": "#b2babc",
+                    "surface-container-low": "#171c1e",
+                    "background": "#0f1416",
+                    "inverse-primary": "#775a19",
+                    "on-secondary-fixed": "#161d1f",
+                    "inverse-surface": "#dfe3e6",
+                    "surface-container-high": "#262b2d",
+                    "tertiary-fixed": "#dae4ed",
+                    "tertiary": "#bec8d1",
+                    "primary": "#e9c176",
+                    "surface-tint": "#e9c176",
+                    "secondary": "#c1c8ca",
+                    "surface-bright": "#353a3c",
+                    "surface-variant": "#303638",
+                    "on-surface-variant": "#d1c5b4",
+                    "outline-variant": "#4e4639",
+                    "on-primary": "#412d00",
+                    "tertiary-container": "#9da6af",
+                    "on-primary-fixed-variant": "#5d4201",
+                    "primary-fixed-dim": "#e9c176",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#303638",
+                    "on-primary-container": "#4e3700",
+                    "on-primary-fixed": "#261900",
+                    "secondary-fixed-dim": "#c1c8ca",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#0a0f11",
+                    "surface-dim": "#0f1416",
+                    "on-tertiary-fixed": "#141d23",
+                    "tertiary-fixed-dim": "#bec8d1",
+                    "on-error": "#690005",
+                    "surface": "#0f1416",
+                    "on-secondary": "#2b3234",
+                    "on-surface": "#dfe3e6",
+                    "primary-container": "#c5a059",
+                    "on-tertiary-container": "#333c43",
+                    "inverse-on-surface": "#2c3133"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "container-margin": "16px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "gutter": "12px",
+                    "sm": "12px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "data-mono": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f1416;
+            color: #dfe3e6;
+            scrollbar-width: thin;
+            scrollbar-color: #4e4639 #0f1416;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-chart-bar {
+            transition: height 1s ease-out;
+        }
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background border-b border-outline-variant flex justify-between items-center px-container-margin h-16 w-full docked full-width top-0 sticky z-50">
+<div class="flex items-center gap-md">
+<button class="text-primary dark:text-primary hover:bg-surface-container-high transition-colors p-xs rounded-lg md:hidden" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary tracking-tight">Dashboard</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-sm">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase">Admin Panel</span>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+</div>
+<div class="w-10 h-10 rounded-full border border-primary/30 bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a high-end barbershop administrator, styled with meticulous detail, wearing a charcoal grey tailored vest over a white shirt. The background is a blurred luxury salon environment with warm gold lighting and dark wood accents. The overall aesthetic is authoritative, sophisticated, and premium, aligned with a corporate modern design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2ypLkiINPyLPd_tpy1CnbxuBIqmo35VIOG5Ra3-pDmJl8TIokLLnjUOnTND1kwuo6YqSGC88_oKvX07O_Mll8Jm-OJZvNR1I9-1O11j1dbOBZhbiwn8ZdUzjL2sLhAQwOhRNbxa4-Y-A43bkbuGy9jPzr_qrwGgBFbvFBd6rgVsgsDxjv0dLLHDvG8uiPYrZru3P0hvDH_7BX-y9AH0XFjV4t7GfhXAgDJ3CnSCxWl6tBaOsqOFw3">
+</div>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- NavigationDrawer -->
+<aside class="fixed md:sticky inset-y-0 left-0 w-[240px] z-50 -translate-x-full md:translate-x-0 sidebar-transition bg-surface-container dark:bg-surface-container border-r border-outline-variant shadow-lg flex flex-col h-screen py-lg" id="sidebar">
+<div class="px-md mb-xl flex items-center gap-sm">
+<div class="bg-primary/20 p-xs rounded-lg">
+<span class="material-symbols-outlined text-primary">content_cut</span>
+</div>
+<div>
+<h2 class="text-headline-sm font-headline-sm text-primary">Royal Grooming</h2>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Premium Barbershop</p>
+</div>
+</div>
+<nav class="flex-1 space-y-base px-xs">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-xs px-md py-sm text-primary bg-primary/10 border-l-[3px] border-primary font-semibold transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-body-md font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-body-md font-body-md">Appointments</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-body-md font-body-md">Expenses</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="text-body-md font-body-md">Categories</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">content_cut</span>
+<span class="text-body-md font-body-md">Services</span>
+</a>
+</nav>
+<div class="px-md pt-lg mt-auto border-t border-outline-variant/30">
+<div class="flex items-center gap-sm p-sm bg-surface-container-low rounded-lg">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">AD</div>
+<div>
+<p class="text-label-caps font-label-caps text-on-surface truncate">Admin User</p>
+<p class="text-[10px] text-on-surface-variant uppercase">v1.0.4</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Overlay for mobile sidebar -->
+<div class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<!-- Main Content -->
+<main class="flex-1 w-full px-md md:px-xl py-lg overflow-x-hidden">
+<!-- Top Section: Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-xl">
+<!-- Receita Total -->
+<div class="bg-surface-container-low border border-outline-variant p-lg rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-all"></div>
+<div class="flex justify-between items-start mb-md">
+<span class="material-symbols-outlined text-primary p-xs bg-primary/10 rounded-lg">account_balance_wallet</span>
+<div class="flex items-center gap-xs text-green-400">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-caps font-label-caps">+12.5%</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps uppercase mb-base">Receita Total</p>
+<h3 class="text-display-lg font-display-lg text-on-surface">R$ 24.580,00</h3>
+</div>
+<!-- Lucro -->
+<div class="bg-surface-container-low border border-outline-variant p-lg rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-primary/10 transition-all"></div>
+<div class="flex justify-between items-start mb-md">
+<span class="material-symbols-outlined text-primary p-xs bg-primary/10 rounded-lg">payments</span>
+<div class="flex items-center gap-xs text-green-400">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-caps font-label-caps">+8.2%</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps uppercase mb-base">Lucro Estimado</p>
+<h3 class="text-display-lg font-display-lg text-on-surface">R$ 15.240,00</h3>
+</div>
+<!-- Despesas -->
+<div class="bg-surface-container-low border border-outline-variant p-lg rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-24 h-24 bg-error/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-error/10 transition-all"></div>
+<div class="flex justify-between items-start mb-md">
+<span class="material-symbols-outlined text-error p-xs bg-error/10 rounded-lg">receipt_long</span>
+<div class="flex items-center gap-xs text-error">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span class="text-label-caps font-label-caps">-2.1%</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-label-caps font-label-caps uppercase mb-base">Despesas do Mês</p>
+<h3 class="text-display-lg font-display-lg text-on-surface">R$ 9.340,00</h3>
+</div>
+</div>
+<!-- Middle Section: Chart -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg mb-xl">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-xl gap-md">
+<div>
+<h2 class="text-headline-sm font-headline-sm text-on-surface mb-base">Fluxo Financeiro</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Comparativo de receitas vs despesas (Últimos 30 dias)</p>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Receitas</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-outline-variant"></div>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Despesas</span>
+</div>
+</div>
+</div>
+<div class="h-64 w-full flex items-end gap-xs md:gap-sm px-base">
+<!-- Dummy Bar Chart Visuals -->
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/4 rounded-t-sm"></div>
+<div class="w-full bg-primary h-1/2 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/3 rounded-t-sm"></div>
+<div class="w-full bg-primary h-2/3 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/5 rounded-t-sm"></div>
+<div class="w-full bg-primary h-3/4 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/2 rounded-t-sm"></div>
+<div class="w-full bg-primary h-2/5 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/4 rounded-t-sm"></div>
+<div class="w-full bg-primary h-3/5 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/6 rounded-t-sm"></div>
+<div class="w-full bg-primary h-4/5 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/3 rounded-t-sm"></div>
+<div class="w-full bg-primary h-1/2 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/4 rounded-t-sm"></div>
+<div class="w-full bg-primary h-2/3 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-2/5 rounded-t-sm"></div>
+<div class="w-full bg-primary h-3/4 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 hidden md:flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/6 rounded-t-sm"></div>
+<div class="w-full bg-primary h-5/6 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 hidden md:flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/4 rounded-t-sm"></div>
+<div class="w-full bg-primary h-3/5 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+<div class="flex-1 hidden md:flex flex-col justify-end gap-[2px]">
+<div class="w-full bg-outline-variant/30 h-1/2 rounded-t-sm"></div>
+<div class="w-full bg-primary h-1/3 rounded-t-sm transition-all hover:opacity-80"></div>
+</div>
+</div>
+<div class="mt-md border-t border-outline-variant/20 pt-sm flex justify-between text-label-caps font-label-caps text-on-surface-variant">
+<span>Semana 1</span>
+<span>Semana 2</span>
+<span>Semana 3</span>
+<span>Semana 4</span>
+</div>
+</div>
+<!-- Bottom Section: Recent Activities & Bento Highlights -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+<!-- Atividades Recentes List -->
+<div class="lg:col-span-2 bg-surface-container-low border border-outline-variant rounded-xl p-lg">
+<div class="flex items-center justify-between mb-lg">
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Atividades Recentes</h2>
+<button class="text-primary text-label-caps font-label-caps uppercase hover:underline">Ver tudo</button>
+</div>
+<div class="space-y-md">
+<!-- Activity Item -->
+<div class="flex items-center gap-md p-md bg-surface-container hover:bg-surface-container-high rounded-lg transition-all group">
+<div class="w-10 h-10 rounded-full bg-green-500/10 text-green-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md text-on-surface">Agendamento confirmado: <span class="font-bold">João Silva</span></p>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Corte Degradê &amp; Barba • 14:30h</p>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface-variant shrink-0">Há 10 min</span>
+</div>
+<!-- Activity Item -->
+<div class="flex items-center gap-md p-md bg-surface-container hover:bg-surface-container-high rounded-lg transition-all group">
+<div class="w-10 h-10 rounded-full bg-error/10 text-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md text-on-surface">Nova despesa registrada: <span class="font-bold">Aluguel</span></p>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Pagamento fixo mensal • R$ 2.500,00</p>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface-variant shrink-0">Há 2h</span>
+</div>
+<!-- Activity Item -->
+<div class="flex items-center gap-md p-md bg-surface-container hover:bg-surface-container-high rounded-lg transition-all group">
+<div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md text-on-surface">Novo feedback: <span class="font-bold">Ricardo Alvares</span></p>
+<p class="text-label-caps font-label-caps text-on-surface-variant">"Serviço impecável, melhor da cidade!" • 5 Estrelas</p>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface-variant shrink-0">Há 4h</span>
+</div>
+<!-- Activity Item -->
+<div class="flex items-center gap-md p-md bg-surface-container hover:bg-surface-container-high rounded-lg transition-all group">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person_add</span>
+</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md text-on-surface">Novo cliente cadastrado: <span class="font-bold">Marcos Pereira</span></p>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Primeiro agendamento realizado via APP</p>
+</div>
+<span class="text-label-caps font-label-caps text-on-surface-variant shrink-0">Há 6h</span>
+</div>
+</div>
+</div>
+<!-- Right Highlight: Best Performer / Goal -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg flex flex-col h-full">
+<h2 class="text-headline-sm font-headline-sm text-on-surface mb-lg">Barbeiro do Mês</h2>
+<div class="flex-1 flex flex-col items-center justify-center text-center">
+<div class="relative mb-md">
+<div class="w-24 h-24 rounded-full border-4 border-primary p-1">
+<img class="w-full h-full object-cover rounded-full" data-alt="A portrait of a skilled barber with a groomed beard and tattoos, working in a modern barbershop. He is wearing a dark leather apron and holding professional shears. The background shows blurred shelves with grooming products and warm spotlighting. High-contrast dark photography with gold tones, evoking a professional and meticulous craft aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAViMAj2N3uEulqMY7tE7_SVDmmhG5MxNxYQ0VPnw2KeN0JPMB1BQkd2Q4eSvekN9yBZwDGQZ3XWu_VDBDysLeKwAc8H83qt8wDXOyxPn1Djl8TQtnXqHMioIsVhcJRnHy5xjnF9N_jNRtEXrFJ5O8LELX832uv85d2j8OdXYYhxBe4H40iOax_RiLIg4mJ7jnowiLdzbThBpnpNwyP98EH_uo-3nzsukS2LeGVxs_hyfT8rzDk5BUG">
+</div>
+<div class="absolute -bottom-2 -right-2 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">trophy</span>
+</div>
+</div>
+<h4 class="text-headline-sm font-headline-sm text-on-surface">André "The Blade"</h4>
+<p class="text-label-caps font-label-caps text-on-surface-variant uppercase mb-lg">Master Barber</p>
+<div class="grid grid-cols-2 gap-md w-full">
+<div class="bg-surface-container p-sm rounded-lg">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Cortes</p>
+<p class="text-headline-sm font-headline-sm text-primary">142</p>
+</div>
+<div class="bg-surface-container p-sm rounded-lg">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Avaliação</p>
+<p class="text-headline-sm font-headline-sm text-primary">4.9</p>
+</div>
+</div>
+</div>
+<button class="mt-xl w-full py-md bg-primary-container text-on-primary-container font-bold rounded-lg hover:bg-primary transition-all active:scale-95">Gerenciar Equipe</button>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button Contextual (Hidden on Dashboard usually, but keeping for UI flair) -->
+<button class="fixed bottom-lg right-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 md:hidden">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            const isHidden = sidebar.classList.contains('-translate-x-full');
+            
+            if (isHidden) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Simple animation on chart bars on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.flex-1.flex.flex-col');
+            bars.forEach((bar, index) => {
+                const innerBars = bar.querySelectorAll('div');
+                innerBars.forEach(inner => {
+                    const targetHeight = inner.style.height || getComputedStyle(inner).height;
+                    inner.style.height = '0px';
+                    setTimeout(() => {
+                        inner.style.height = targetHeight;
+                    }, 100 + (index * 50));
+                });
+            });
+        });
+    </script>
+</body></html>

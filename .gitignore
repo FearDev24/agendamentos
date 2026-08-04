@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------
+# AgendaBarber Web - Arquivos fora do controle de versão
+# ---------------------------------------------------------------
+
+# Credenciais reais (banco, SMTP, Mercado Pago).
+# Versionamos apenas config/config.example.php como modelo.
+config/config.php
+
+# Logs gerados em execução
+logs/*.log
+
+# Arquivos enviados por usuários
+public/uploads/*
+!public/uploads/.htaccess
+
+# Dependências instaladas
+/vendor/
+composer.lock
+
+# Artefatos de sistema operacional e editores
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~

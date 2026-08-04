@@ -1,0 +1,367 @@
+<!DOCTYPE html><html class="dark" lang="pt-br"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Royal Grooming - Agendamentos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#283139",
+                    "outline": "#9a8f80",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#434a4c",
+                    "on-secondary-fixed-variant": "#41484a",
+                    "on-tertiary-fixed-variant": "#3f4850",
+                    "surface-container": "#1b2022",
+                    "secondary-fixed": "#dde4e6",
+                    "primary-fixed": "#ffdea5",
+                    "on-background": "#dfe3e6",
+                    "on-secondary-container": "#b2babc",
+                    "surface-container-low": "#171c1e",
+                    "background": "#0f1416",
+                    "inverse-primary": "#775a19",
+                    "on-secondary-fixed": "#161d1f",
+                    "inverse-surface": "#dfe3e6",
+                    "surface-container-high": "#262b2d",
+                    "tertiary-fixed": "#dae4ed",
+                    "tertiary": "#bec8d1",
+                    "primary": "#e9c176",
+                    "surface-tint": "#e9c176",
+                    "secondary": "#c1c8ca",
+                    "surface-bright": "#353a3c",
+                    "surface-variant": "#303638",
+                    "on-surface-variant": "#d1c5b4",
+                    "outline-variant": "#4e4639",
+                    "on-primary": "#412d00",
+                    "tertiary-container": "#9da6af",
+                    "on-primary-fixed-variant": "#5d4201",
+                    "primary-fixed-dim": "#e9c176",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#303638",
+                    "on-primary-container": "#4e3700",
+                    "on-primary-fixed": "#261900",
+                    "secondary-fixed-dim": "#c1c8ca",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#0a0f11",
+                    "surface-dim": "#0f1416",
+                    "on-tertiary-fixed": "#141d23",
+                    "tertiary-fixed-dim": "#bec8d1",
+                    "on-error": "#690005",
+                    "surface": "#0f1416",
+                    "on-secondary": "#2b3234",
+                    "on-surface": "#dfe3e6",
+                    "primary-container": "#c5a059",
+                    "on-tertiary-container": "#333c43",
+                    "inverse-on-surface": "#2c3133"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "md": "16px",
+                    "container-margin": "16px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "gutter": "12px",
+                    "sm": "12px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "data-mono": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Subtle glassmorphism for cards */
+        .glass-card {
+            background: rgba(30, 39, 46, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(78, 70, 57, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Sidebar (NavigationDrawer) - Fixed on Desktop, Drawer on Mobile (simulated via JS) -->
+<aside class="fixed inset-y-0 left-0 w-[240px] z-50 bg-surface-container border-r border-outline-variant shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col py-lg" id="main-drawer">
+<div class="px-md mb-xl flex items-center gap-xs">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div>
+<h2 class="text-headline-sm font-headline-sm text-primary">Admin Panel</h2>
+<p class="text-label-caps font-label-caps text-on-surface-variant">Premium Barbershop</p>
+</div>
+</div>
+<nav class="flex-1 space-y-base overflow-y-auto px-xs">
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-body-md font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-primary bg-primary/10 border-l-[3px] border-primary font-semibold transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="text-body-md font-body-md">Appointments</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-body-md font-body-md">Expenses</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="text-body-md font-body-md">Categories</span>
+</a>
+<a class="flex items-center gap-xs px-md py-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all duration-200" href="#">
+<span class="material-symbols-outlined">content_cut</span>
+<span class="text-body-md font-body-md">Services</span>
+</a>
+</nav>
+<div class="mt-auto px-md pt-md border-t border-outline-variant/30 text-center">
+<span class="text-label-caps font-label-caps text-outline/50 uppercase">v1.0.4</span>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-[240px] flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 w-full h-16 bg-background border-b border-outline-variant flex justify-between items-center px-container-margin">
+<div class="flex items-center gap-md">
+<button class="lg:hidden p-base rounded-full hover:bg-surface-container-high transition-colors" onclick="toggleDrawer()">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary tracking-tight">Agendamentos</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A sophisticated headshot of a professional administrator in a high-end luxury barbershop setting. The lighting is dramatic and moody with golden highlights, consistent with a premium corporate aesthetic. The background features polished dark wood and metallic accents. Soft-focus bokeh creates a professional depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9aUoyKpDF6Q6CSvjfOKmyQawH-USUJoWDsQNQUgJV-xOLqkRK4BhnnVZIGRokcuSppuTCfGgu_8BWtQAeXbVMnbP2BNJEcsxPWl_2sYBTTDP7fHGwZyt8LKOJz-PMbTizD2tX0QgSu09-MyMfJK_yttQKebLnwj4vk2i-xY8Spxkqk0JhDFrhaLjrHVr3NFfmgPhXdRDPGOGrIwhSH3OqVRfSyMGl7QfSkwlhh-FxBGoNWVDOuTzm">
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-md lg:p-xl space-y-lg pb-32">
+<!-- Horizontal Date Picker -->
+<section class="space-y-sm">
+<div class="flex justify-between items-center">
+<h3 class="text-label-caps font-label-caps text-outline uppercase tracking-widest">Outubro 2023</h3>
+<button class="text-primary flex items-center gap-base text-label-caps">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                        HOJE
+                    </button>
+</div>
+<div class="flex gap-sm overflow-x-auto hide-scrollbar py-base">
+<!-- Date Card Loop (Selected) -->
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-primary text-on-primary flex flex-col items-center justify-center shadow-md shadow-primary/20 cursor-pointer">
+<span class="text-label-caps font-medium">SEG</span>
+<span class="text-headline-sm font-bold">23</span>
+</div>
+<!-- Other Dates -->
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="text-label-caps text-on-surface-variant">TER</span>
+<span class="text-headline-sm font-bold text-on-surface">24</span>
+</div>
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="text-label-caps text-on-surface-variant">QUA</span>
+<span class="text-headline-sm font-bold text-on-surface">25</span>
+</div>
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="text-label-caps text-on-surface-variant">QUI</span>
+<span class="text-headline-sm font-bold text-on-surface">26</span>
+</div>
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="text-label-caps text-on-surface-variant">SEX</span>
+<span class="text-headline-sm font-bold text-on-surface">27</span>
+</div>
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="text-label-caps text-on-surface-variant">SÁB</span>
+<span class="text-headline-sm font-bold text-on-surface">28</span>
+</div>
+<div class="flex-shrink-0 w-16 h-20 rounded-xl bg-surface-container border border-outline-variant/30 flex flex-col items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer opacity-50">
+<span class="text-label-caps text-on-surface-variant">DOM</span>
+<span class="text-headline-sm font-bold text-on-surface">29</span>
+</div>
+</div>
+</section>
+<!-- Appointment List -->
+<section class="space-y-md">
+<div class="flex items-center justify-between">
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Agendamentos de Hoje</h2>
+<span class="text-label-caps bg-surface-container-highest px-sm py-base rounded-full text-on-surface-variant">4 TOTAL</span>
+</div>
+<div class="grid grid-cols-1 gap-md">
+<!-- Appointment Card: Confirmed -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between group hover:border-primary/50 transition-all active:scale-[0.98]">
+<div class="flex gap-md items-center">
+<div class="flex flex-col items-center justify-center pr-md border-r border-outline-variant/50">
+<span class="text-headline-sm font-bold text-primary">09:00</span>
+<span class="text-label-caps text-outline uppercase">AM</span>
+</div>
+<div class="space-y-base">
+<h4 class="font-bold text-on-surface">Arthur Pendragon</h4>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">content_cut</span>
+<span class="text-body-md">Corte &amp; Barba Elite</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="text-label-caps bg-green-900/30 text-green-400 px-xs py-base rounded flex items-center gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                            Confirmado</span>
+<span class="text-body-md font-bold text-on-surface">R$ 120,00</span>
+</div>
+</div>
+<!-- Appointment Card: Pending -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between group hover:border-primary/50 transition-all active:scale-[0.98]">
+<div class="flex gap-md items-center">
+<div class="flex flex-col items-center justify-center pr-md border-r border-outline-variant/50">
+<span class="text-headline-sm font-bold text-primary">10:30</span>
+<span class="text-label-caps text-outline uppercase">AM</span>
+</div>
+<div class="space-y-base">
+<h4 class="font-bold text-on-surface">Guilherme Silva</h4>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">face</span>
+<span class="text-body-md">Limpeza de Pele</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="text-label-caps bg-orange-900/30 text-orange-400 px-xs py-base rounded flex items-center gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                            Pendente</span>
+<span class="text-body-md font-bold text-on-surface">R$ 85,00</span>
+</div>
+</div>
+<!-- Appointment Card: Completed -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between opacity-70 transition-all">
+<div class="flex gap-md items-center">
+<div class="flex flex-col items-center justify-center pr-md border-r border-outline-variant/50">
+<span class="text-headline-sm font-bold text-outline">08:00</span>
+<span class="text-label-caps text-outline uppercase">AM</span>
+</div>
+<div class="space-y-base">
+<h4 class="font-bold text-on-surface">Marcus Aurelius</h4>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">straighten</span>
+<span class="text-body-md">Design de Sobrancelha</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="text-label-caps bg-surface-container-highest text-on-surface-variant px-xs py-base rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Concluído</span>
+<span class="text-body-md font-bold text-on-surface">R$ 45,00</span>
+</div>
+</div>
+<!-- Appointment Card: Confirmed -->
+<div class="glass-card p-md rounded-xl flex items-center justify-between group hover:border-primary/50 transition-all active:scale-[0.98]">
+<div class="flex gap-md items-center">
+<div class="flex flex-col items-center justify-center pr-md border-r border-outline-variant/50">
+<span class="text-headline-sm font-bold text-primary">14:00</span>
+<span class="text-label-caps text-outline uppercase">PM</span>
+</div>
+<div class="space-y-base">
+<h4 class="font-bold text-on-surface">Ricardo Oliveira</h4>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">content_cut</span>
+<span class="text-body-md">Corte Tradicional</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="text-label-caps bg-green-900/30 text-green-400 px-xs py-base rounded flex items-center gap-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                            Confirmado</span>
+<span class="text-body-md font-bold text-on-surface">R$ 60,00</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Stats Bento Style (Desktop Only or Tablet) -->
+<section class="hidden sm:grid grid-cols-2 gap-md mt-lg">
+<div class="bg-surface-container border border-outline-variant/30 p-md rounded-xl">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-label-caps text-outline">Faturamento Hoje</span>
+<span class="text-green-400 text-label-caps">+12%</span>
+</div>
+<div class="text-headline-md font-bold text-primary">R$ 310,00</div>
+</div>
+<div class="bg-surface-container border border-outline-variant/30 p-md rounded-xl">
+<div class="flex justify-between items-start mb-xs">
+<span class="text-label-caps text-outline">Ocupação</span>
+<span class="text-primary text-label-caps">75%</span>
+</div>
+<div class="text-headline-md font-bold text-on-surface">6/8 Horas</div>
+</div>
+</section>
+</div>
+<!-- FAB - Floating Action Button -->
+<button class="fixed bottom-lg right-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+</main>
+<!-- Overlay for mobile drawer -->
+<div class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity duration-300 opacity-0" id="drawer-overlay" onclick="toggleDrawer()"></div>
+<script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('main-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            if (drawer.classList.contains('-translate-x-full')) {
+                drawer.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            } else {
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.remove('opacity-100');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // Handle window resize to hide drawer state on desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                const drawer = document.getElementById('main-drawer');
+                const overlay = document.getElementById('drawer-overlay');
+                drawer.classList.add('lg:translate-x-0');
+                overlay.classList.add('hidden');
+                overlay.classList.remove('opacity-100');
+            }
+        });
+    </script>
+</body></html>
