@@ -1,52 +1,93 @@
 <?php
 /**
  * AgendaBarber Web - Front Controller & Roteador Principal
- * 
+ *
  * Ponto de entrada único da aplicação. Recebe todas as requisições HTTP,
- * inicializa as configurações globais, sessões, helpers e despacha a rota.
+ * inicializa configurações, sessão, autoloader e despacha a rota para o
+ * Controller correspondente.
  */
 
-// Define constante de segurança para proibir acesso direto a arquivos internos
+// Constante de segurança que autoriza o carregamento dos arquivos internos
 define('APP_EXEC', true);
 
-// Define o fuso horário padrão do sistema
 date_default_timezone_set('America/Sao_Paulo');
 
-// Carrega as configurações principais do sistema
-$config = require_once __DIR__ . '/config/config.php';
+$config = require __DIR__ . '/config/config.php';
+$GLOBALS['config'] = $config;
 
-// Inicia o gerenciador de sessão seguro
-require_once __DIR__ . '/app/helpers/SessionHelper.php';
+// Exibição de erros conforme o ambiente
+if (($config['app']['env'] ?? 'production') === 'development') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '0');
+}
+ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/logs/error.log');
+
+require_once __DIR__ . '/app/bootstrap.php';
+
+// Cabeçalhos de segurança HTTP (docs/FSD.md seção 24)
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+
 SessionHelper::init();
 
-// Roteamento básico simples para tratamento da URL inicial
-$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$basePath = parse_url($config['app']['url'], PHP_URL_PATH) ?? '';
-$route = str_replace($basePath, '', strtok($requestUri, '?'));
-$route = '/' . trim($route, '/');
+// -----------------------------------------------------------------
+// Resolução da rota
+// -----------------------------------------------------------------
+$metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$rota = Router::caminhoAtual($config['app']['url']);
 
-// Resposta base da infraestrutura (Fase 1)
-if ($route === '/' || $route === '/index.php') {
-    $pageTitle = $config['app']['name'] . " - Página Inicial";
-    require_once __DIR__ . '/app/views/layouts/header.php';
-    ?>
-    <main class="container py-5 text-center">
-        <div class="p-5 mb-4 rounded-3 style-card-hero">
-            <div class="container-fluid py-3">
-                <img src="<?= $config['app']['url'] ?>/public/assets/img/logojablonskiprincipal.png" alt="AgendaBarber Logo" class="mb-4" style="max-height: 120px;">
-                <h1 class="display-5 fw-bold text-gold">Bem-vindo ao <?= htmlspecialchars($config['app']['name']) ?></h1>
-                <p class="fs-5 text-muted-custom">Sistema de Agendamento e Gestão Integrada para Barbearias e Estética</p>
-                <div class="badge bg-bronze p-2 mb-3">Infraestrutura e Base de Projeto Prontas (Fase 1)</div>
-            </div>
-        </div>
-    </main>
-    <?php
-    require_once __DIR__ . '/app/views/layouts/footer.php';
-    exit;
+// -----------------------------------------------------------------
+// Tabela de rotas: 'MÉTODO /caminho' => [Controller, método]
+// -----------------------------------------------------------------
+$rotas = [
+    // Público
+    'GET /'                    => [HomeController::class, 'index'],
+
+    // Autenticação
+    'GET /login'               => [AuthController::class, 'formLogin'],
+    'POST /login'              => [AuthController::class, 'login'],
+    'GET /cadastro'            => [AuthController::class, 'formCadastro'],
+    'POST /cadastro'           => [AuthController::class, 'cadastrar'],
+    'POST /logout'             => [AuthController::class, 'logout'],
+    'GET /recuperar-senha'     => [AuthController::class, 'formRecuperarSenha'],
+    'POST /recuperar-senha'    => [AuthController::class, 'enviarRecuperacao'],
+    'GET /redefinir-senha'     => [AuthController::class, 'formRedefinirSenha'],
+    'POST /redefinir-senha'    => [AuthController::class, 'redefinirSenha'],
+    'GET /confirmar-email'     => [AuthController::class, 'confirmarEmail'],
+
+    // Perfil do usuário autenticado
+    'GET /perfil'              => [PerfilController::class, 'index'],
+    'POST /perfil/dados'       => [PerfilController::class, 'atualizarDados'],
+    'POST /perfil/senha'       => [PerfilController::class, 'alterarSenha'],
+    'POST /perfil/email'       => [PerfilController::class, 'solicitarTrocaEmail'],
+    'POST /perfil/excluir'     => [PerfilController::class, 'excluirConta'],
+
+    // Áreas restritas (o RBAC é validado dentro de cada Controller)
+    'GET /cliente/agendamentos'  => [ClienteController::class, 'agendamentos'],
+    'GET /profissional/agenda'   => [ProfissionalController::class, 'agenda'],
+    'GET /admin/dashboard'       => [AdminController::class, 'dashboard'],
+    'GET /admin/auditoria'       => [AdminController::class, 'auditoria'],
+];
+
+// -----------------------------------------------------------------
+// Despacho
+// -----------------------------------------------------------------
+try {
+    Router::despachar($rotas, $metodo, $rota);
+} catch (Throwable $e) {
+    LogModel::erro($e);
+
+    if (($config['app']['env'] ?? 'production') === 'development') {
+        throw $e;
+    }
+
+    http_response_code(500);
+    $pageTitle = 'Erro Interno';
+    require __DIR__ . '/app/views/errors/500.php';
 }
-
-// Em caso de rota não mapeada nesta fase inicial
-http_response_code(404);
-require_once __DIR__ . '/app/views/layouts/header.php';
-echo "<div class='container py-5 text-center'><h2 class='text-gold'>404 - Página Não Encontrada</h2><p class='text-muted-custom'>A rota solicitada está em desenvolvimento nas fases seguintes.</p></div>";
-require_once __DIR__ . '/app/views/layouts/footer.php';

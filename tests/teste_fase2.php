@@ -237,7 +237,11 @@ $t->grupo('9. Idempotência do runner de migrations');
 
 $runner = new MigrationRunner();
 $aplicadas = $runner->aplicadas();
-$t->igual('Migrations registradas em schema_migrations', 2, count($aplicadas));
+$disponiveis = $runner->arquivosDisponiveis();
+
+// Comparação dinâmica: novas fases acrescentam migrations sem quebrar este teste
+$t->igual('Toda migration disponível está registrada em schema_migrations',
+    count($disponiveis), count($aplicadas));
 $t->verificar('001_create_system_tables.php registrada', in_array('001_create_system_tables.php', $aplicadas, true));
 $t->verificar('002_seed_initial_data.php registrada', in_array('002_seed_initial_data.php', $aplicadas, true));
 $t->igual('Nenhuma migration pendente após execução', 0, count($runner->pendentes()));
