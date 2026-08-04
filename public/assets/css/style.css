@@ -255,3 +255,111 @@ button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* ==========================================================================
+   Componentes - Fase 4 (Tabelas de dados e etiquetas de status)
+   ========================================================================== */
+
+/* Tabelas rolam horizontalmente no mobile (DESIGN.md - Layout & Spacing) */
+.tabela-rolavel {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabela-dados {
+  color: var(--color-on-surface);
+  margin-bottom: 0;
+  /* Números alinham perfeitamente em colunas */
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela-dados > :not(caption) > * > * {
+  background-color: transparent;
+  color: var(--color-on-surface);
+  border-bottom-color: var(--color-outline-variant);
+  padding: 0.75rem 0.5rem;
+}
+
+/* Cabeçalhos usam o token tipográfico label-caps */
+.tabela-dados thead th {
+  color: var(--color-on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tabela-dados tbody tr:hover > * {
+  background-color: rgba(233, 193, 118, 0.06);
+}
+
+.dado-numerico {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Etiquetas de status: raio 8px para distingui-las de botões */
+.etiqueta {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.etiqueta-ativo,
+.etiqueta-ativa {
+  background-color: rgba(129, 199, 132, 0.14);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.etiqueta-indisponivel {
+  background-color: rgba(233, 193, 118, 0.14);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.etiqueta-inativo,
+.etiqueta-inativa {
+  background-color: rgba(154, 143, 128, 0.14);
+  border-color: var(--color-outline);
+  color: var(--color-outline);
+}
+
+.etiqueta-geral {
+  background-color: rgba(190, 200, 209, 0.14);
+  border-color: var(--color-tertiary);
+  color: var(--color-tertiary);
+}
+
+/* Campos select e textarea herdam o visual dos inputs */
+select.campo-form {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-outline) 50%),
+                    linear-gradient(135deg, var(--color-outline) 50%, transparent 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+select.campo-form option {
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface);
+}
+
+textarea.campo-form {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Botões compactos usados nas linhas das tabelas */
+.btn-sm {
+  font-size: 12px;
+  padding: 0.25rem 0.6rem;
+}

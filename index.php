@@ -73,6 +73,24 @@ $rotas = [
     'GET /profissional/agenda'   => [ProfissionalController::class, 'agenda'],
     'GET /admin/dashboard'       => [AdminController::class, 'dashboard'],
     'GET /admin/auditoria'       => [AdminController::class, 'auditoria'],
+
+    // Cadastro de serviços (exclusivo do Administrador Principal)
+    'GET /admin/servicos'            => [ServicoController::class, 'index'],
+    'POST /admin/servicos/salvar'    => [ServicoController::class, 'salvar'],
+    'POST /admin/servicos/excluir'   => [ServicoController::class, 'excluir'],
+    'POST /admin/servicos/restaurar' => [ServicoController::class, 'restaurar'],
+
+    // Cadastro de profissionais (exclusivo do Administrador Principal)
+    'GET /admin/profissionais'          => [AdminController::class, 'profissionais'],
+    'POST /admin/profissionais/salvar'  => [AdminController::class, 'salvarProfissional'],
+    'POST /admin/profissionais/excluir' => [AdminController::class, 'excluirProfissional'],
+    'POST /admin/profissionais/servicos'=> [AdminController::class, 'salvarServicosDoProfissional'],
+    'POST /admin/profissionais/horarios'=> [AdminController::class, 'salvarHorarios'],
+
+    // Bloqueios de agenda (ambos os perfis administrativos)
+    'GET /admin/bloqueios'          => [AdminController::class, 'bloqueios'],
+    'POST /admin/bloqueios/salvar'  => [AdminController::class, 'salvarBloqueio'],
+    'POST /admin/bloqueios/excluir' => [AdminController::class, 'excluirBloqueio'],
 ];
 
 // -----------------------------------------------------------------

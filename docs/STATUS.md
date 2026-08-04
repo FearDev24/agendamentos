@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 04/08/2026  
-**Estado Atual**: Fase 3 (Autenticação, Sessões e RBAC) Concluída. Sistema com roteamento MVC completo, login unificado, cadastro público, recuperação de senha, perfil do usuário e controle de acesso por perfil. Baterias de teste: 111 (Fase 2) + 149 (Fase 3) = **260 testes passando**.
+**Estado Atual**: Fase 4 (Cadastros Administrativos Base) Concluída. Sistema com CRUD de serviços, gestão de profissionais com jornada semanal e serviços executados, e bloqueios de agenda. Baterias de teste: 111 (Fase 2) + 149 (Fase 3) + 128 (Fase 4) = **388 testes passando**.
 
 ---
 
@@ -10,7 +10,7 @@
 - [x] **Fase 1 - Infraestrutura e Base do Projeto** *(Concluída em 02/08/2026)*
 - [x] **Fase 2 - Banco de Dados e Sistema de Migrations** *(Concluída em 04/08/2026)*
 - [x] **Fase 3 - Módulo de Autenticação, Sessões e Controle de Acesso (RBAC)** *(Concluída em 04/08/2026)*
-- [ ] **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)**
+- [x] **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)** *(Concluída em 04/08/2026)*
 - [ ] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público**
 - [ ] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária**
 - [ ] **Fase 7 - Áreas Restritas do Cliente e do Profissional**
@@ -21,9 +21,45 @@
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 3 - Módulo de Autenticação, Sessões e Controle de Acesso (RBAC)
-- **Fase Pendente**: **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)**
-- **Próximo Passo Recomendado**: Criar `ServicoModel.php` / `ProfissionalModel.php`, o CRUD de serviços com upload de imagem, o vínculo N:N profissional-serviços, a grade horária semanal (`horarios_trabalho`) e a gestão de bloqueios (`indisponibilidades_bloqueios`).
+- **Fase Concluída**: Fase 4 - Cadastros Administrativos Base
+- **Fase Pendente**: **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público**
+- **Próximo Passo Recomendado**: Construir o motor de cálculo de horários livres em `AgendamentoModel.php` (considerando múltiplos serviços, duração somada, intervalo de 10 min, jornada, almoço, bloqueios e limite diário), a Vitrine Pública e o Wizard de agendamento em 3 passos.
+
+---
+
+## Entregas da Fase 4 (04/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `app/models/ServicoModel.php` | CRUD de serviços, Soft Delete, restauração e vitrine |
+| `app/models/ProfissionalModel.php` | Profissionais, vínculo N:N com serviços e jornada semanal |
+| `app/models/BloqueioModel.php` | Bloqueios de agenda e detecção de conflitos |
+| `app/models/AuditModel.php` | Gravação em `audit_logs` com autoria, IP e antes/depois |
+| `app/controllers/ServicoController.php` | Telas e ações do CRUD de serviços |
+| `app/controllers/AdminController.php` | Ampliado com profissionais, jornada e bloqueios |
+| `app/views/admin/servicos.php` | Formulário, filtros, tabela e restauração |
+| `app/views/admin/profissionais.php` | Cadastro, serviços executados e grade semanal |
+| `app/views/admin/bloqueios.php` | Cadastro e listagem de bloqueios |
+| `tests/teste_fase4.php` | 128 testes de validação da Fase 4 |
+
+### Rotas adicionadas
+`/admin/servicos` (+ `salvar`, `excluir`, `restaurar`) · `/admin/profissionais` (+ `salvar`, `excluir`, `servicos`, `horarios`) · `/admin/bloqueios` (+ `salvar`, `excluir`)
+
+### Decisão de permissão (matriz do FSD seção 8)
+- **Serviços e Profissionais**: exclusivos do Administrador Principal;
+- **Bloqueios de agenda**: liberados também para o Administrador Limitado.
+
+### Auditoria
+Alterações de preço, jornada, vínculos de serviço e bloqueios gravam em `audit_logs` com o estado anterior e o novo. A tela de consulta vem na Fase 9.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase4.php
+```
+
+### Pendências conhecidas
+Os itens de menu `/admin/agenda` e `/admin/financeiro` já aparecem na sidebar mas respondem 404 — serão implementados nas Fases 5 e 8.
 
 ---
 
