@@ -92,7 +92,7 @@ foreach ($receitaPorDia as $linha) { $maiorReceita = max($maiorReceita, (float)$
                             <ul class="list-unstyled mb-0">
                                 <?php foreach ($porForma as $f): ?>
                                     <li class="d-flex justify-content-between border-bottom border-secondary-dark py-2">
-                                        <span><?= ucfirst(str_replace('_', ' ', $f['forma_pagamento'])) ?>
+                                        <span><?= htmlspecialchars(PagamentoModel::ROTULOS_FORMA[$f['forma_pagamento']] ?? $f['forma_pagamento'], ENT_QUOTES, 'UTF-8') ?>
                                             <small class="text-muted-custom">(<?= (int)$f['transacoes'] ?>)</small>
                                         </span>
                                         <span class="dado-numerico"><?= FormatHelper::currency((float)$f['total']) ?></span>

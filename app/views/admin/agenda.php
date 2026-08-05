@@ -155,6 +155,21 @@ foreach ($agendamentos as $a) {
                                 <input type="text" class="campo-form" id="desconto_justificativa"
                                        name="desconto_justificativa" placeholder="Ex: cliente antigo, cortesia">
                             </div>
+
+                            <div class="col-md-6">
+                                <label for="forma_pagamento" class="form-label label-caps text-muted-custom">
+                                    RECEBIMENTO
+                                </label>
+                                <select class="campo-form" id="forma_pagamento" name="forma_pagamento">
+                                    <?php foreach (PagamentoModel::FORMAS_BALCAO as $valor => $rotulo): ?>
+                                        <option value="<?= $valor ?>"><?= $rotulo ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="">Registrar depois</option>
+                                </select>
+                                <small class="text-muted-custom">
+                                    Sem registrar o recebimento, o atendimento não entra no faturamento.
+                                </small>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-gold px-4 mt-4">Criar Agendamento</button>
@@ -254,14 +269,67 @@ foreach ($agendamentos as $a) {
                                             <?= FormatHelper::currency((float)$a['valor_total'] - (float)$a['valor_desconto']) ?>
                                         </strong>
 
-                                        <?php if (in_array($a['situacao'], AgendamentoModel::SITUACOES_ATIVAS, true)): ?>
-                                            <button type="button" class="btn btn-perigo btn-sm mt-2"
-                                                    data-bs-toggle="collapse" data-bs-target="#cancelar-adm-<?= (int)$a['id'] ?>">
-                                                Cancelar
-                                            </button>
+                                        <?php if (!empty($a['forma_paga'])): ?>
+                                            <small class="d-block text-sucesso">
+                                                pago em <?= htmlspecialchars(PagamentoModel::ROTULOS_FORMA[$a['forma_paga']] ?? $a['forma_paga'], ENT_QUOTES, 'UTF-8') ?>
+                                            </small>
+                                        <?php elseif (($a['valor_devido'] ?? 0) > 0
+                                                      && $a['situacao'] !== 'cancelado'
+                                                      && $a['situacao'] !== 'reembolsado'): ?>
+                                            <small class="d-block text-erro">
+                                                em aberto: <?= FormatHelper::currency((float)$a['valor_devido']) ?>
+                                            </small>
                                         <?php endif; ?>
+
+                                        <div class="d-flex gap-1 justify-content-end mt-2">
+                                            <?php if (empty($a['forma_paga']) && ($a['valor_devido'] ?? 0) > 0
+                                                      && in_array($a['situacao'], ['confirmado', 'concluido', 'aguardando_pagamento'], true)): ?>
+                                                <button type="button" class="btn btn-gold btn-sm"
+                                                        data-bs-toggle="collapse" data-bs-target="#pagar-adm-<?= (int)$a['id'] ?>">
+                                                    Receber
+                                                </button>
+                                            <?php endif; ?>
+
+                                            <?php if (in_array($a['situacao'], AgendamentoModel::SITUACOES_ATIVAS, true)): ?>
+                                                <button type="button" class="btn btn-perigo btn-sm"
+                                                        data-bs-toggle="collapse" data-bs-target="#cancelar-adm-<?= (int)$a['id'] ?>">
+                                                    Cancelar
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <?php if (empty($a['forma_paga']) && ($a['valor_devido'] ?? 0) > 0
+                                          && in_array($a['situacao'], ['confirmado', 'concluido', 'aguardando_pagamento'], true)): ?>
+                                    <div class="collapse mt-3" id="pagar-adm-<?= (int)$a['id'] ?>">
+                                        <form method="POST" action="<?= $baseUrl ?>/admin/agenda/pagamento"
+                                              class="border-top border-secondary-dark pt-3">
+                                            <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                                            <input type="hidden" name="codigo" value="<?= htmlspecialchars($a['codigo_reserva'], ENT_QUOTES, 'UTF-8') ?>">
+
+                                            <p class="text-muted-custom mb-2">
+                                                <small>Registrar o recebimento de
+                                                <strong class="text-gold"><?= FormatHelper::currency((float)$a['valor_devido']) ?></strong>
+                                                no balcão. O valor passa a contar no faturamento.</small>
+                                            </p>
+
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-md-9">
+                                                    <label for="forma-<?= (int)$a['id'] ?>" class="form-label label-caps text-muted-custom">FORMA *</label>
+                                                    <select class="campo-form" id="forma-<?= (int)$a['id'] ?>" name="forma_pagamento" required>
+                                                        <?php foreach (PagamentoModel::FORMAS_BALCAO as $valor => $rotulo): ?>
+                                                            <option value="<?= $valor ?>"><?= $rotulo ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <button type="submit" class="btn btn-gold w-100">Confirmar</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
 
                                 <?php if (in_array($a['situacao'], AgendamentoModel::SITUACOES_ATIVAS, true)): ?>
                                     <div class="collapse mt-3" id="cancelar-adm-<?= (int)$a['id'] ?>">

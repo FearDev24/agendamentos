@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 8 (Painel Administrativo Operacional, Financeiro e Promoções) Concluída. Agenda administrativa nas três visões, agendamento manual com desconto justificado, controle de despesas com comprovantes, cálculo de lucro líquido, promoções com link público e exportação em CSV/Excel. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 183 = **1.191 testes passando**.
+**Estado Atual**: Fase 8 (Painel Administrativo Operacional, Financeiro e Promoções) Concluída. Agenda administrativa nas três visões, agendamento manual com desconto justificado, controle de despesas com comprovantes, cálculo de lucro líquido, promoções com link público e exportação em CSV/Excel. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 = **1.216 testes passando**.
 
 ### Aplicativo instalável (PWA) — 05/08/2026
 O sistema pode ser instalado na tela inicial do celular e abre sem a barra do navegador.
@@ -56,7 +56,8 @@ As insígnias e o logotipo eram PNGs de 1024px pesando 1,8 MB cada, exibidos a 9
 | `app/views/admin/relatorios.php` | Desempenho, serviços e exportação |
 | `app/views/admin/promocoes.php` | Cadastro, link de compartilhamento e usos |
 | `app/views/public/promocao.php` | Página pública da campanha |
-| `tests/teste_fase8.php` | 183 testes de validação da Fase 8 |
+| `database/migrations/005_add_pagamento_dinheiro.php` | Forma de pagamento em dinheiro |
+| `tests/teste_fase8.php` | 208 testes de validação da Fase 8 |
 
 O `DespesaModel.php`, que existia sem versionamento desde o início do projeto, foi validado e incorporado.
 
@@ -65,6 +66,16 @@ O `DespesaModel.php`, que existia sem versionamento desde o início do projeto, 
 
 ### Regra financeira adotada
 **Receita é dinheiro efetivamente recebido**: só entram pagamentos compensados. Agendamento confirmado sem pagamento aprovado não conta como faturamento. Vale sempre `receita_liquida = receita_bruta − estornos`.
+
+### Recebimento presencial (balcão)
+A migration `005` acrescentou a forma `dinheiro` ao ENUM de `pagamentos`. Atendimentos criados pelo balcão são quitados presencialmente, sem passar pelo gateway, e agora entram no faturamento:
+
+- No agendamento manual há o campo **Recebimento**: Dinheiro, Cartão (maquininha), Pix direto ou "Registrar depois";
+- Atendimentos sem pagamento aparecem na agenda marcados como **em aberto**, com botão **Receber** para lançar o valor a qualquer momento;
+- O recebimento nasce `aprovado` (o dinheiro entrou no ato), recebe referência `BALCAO-…` para separar da conciliação do gateway e é gravado em `audit_logs`;
+- O valor cobrado já considera o desconto aplicado;
+- Um mesmo atendimento não aceita dois recebimentos;
+- A forma `dinheiro` **nunca** é oferecida ao cliente no checkout online.
 
 ### Permissões
 - **Agenda, bloqueios e promoções**: Administrador Principal e Limitado;

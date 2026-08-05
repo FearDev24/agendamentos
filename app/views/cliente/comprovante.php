@@ -100,7 +100,7 @@
                     <?php if ($pagamento !== null): ?>
                         <dt class="col-7 text-muted-custom">Forma de pagamento</dt>
                         <dd class="col-5 text-end">
-                            <?= $pagamento['forma_pagamento'] === 'pix' ? 'Pix' : 'Cartão de Crédito' ?>
+                            <?= htmlspecialchars(PagamentoModel::ROTULOS_FORMA[$pagamento['forma_pagamento']] ?? $pagamento['forma_pagamento'], ENT_QUOTES, 'UTF-8') ?>
                         </dd>
 
                         <dt class="col-7 text-muted-custom">Pago em</dt>

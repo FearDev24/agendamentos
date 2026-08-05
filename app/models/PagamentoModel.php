@@ -11,8 +11,24 @@ if (!defined('APP_EXEC')) { die('Acesso direto negado.'); }
  */
 class PagamentoModel extends BaseModel {
 
-    public const FORMAS = ['pix', 'cartao_credito'];
+    public const FORMAS = ['pix', 'cartao_credito', 'dinheiro'];
     public const STATUS = ['pendente', 'aprovado', 'recusado', 'estornado'];
+
+    /**
+     * Formas recebidas presencialmente, sem passar pelo gateway.
+     * Nunca são oferecidas ao cliente no checkout online.
+     */
+    public const FORMAS_BALCAO = [
+        'dinheiro'       => 'Dinheiro',
+        'cartao_credito' => 'Cartão (maquininha)',
+        'pix'            => 'Pix (transferência direta)',
+    ];
+
+    public const ROTULOS_FORMA = [
+        'pix'            => 'Pix',
+        'cartao_credito' => 'Cartão de Crédito',
+        'dinheiro'       => 'Dinheiro',
+    ];
 
     // -----------------------------------------------------------------
     // Consultas
@@ -92,6 +108,53 @@ class PagamentoModel extends BaseModel {
         );
 
         return (int)$this->db->lastInsertId();
+    }
+
+    /**
+     * Registra um recebimento presencial, já compensado.
+     *
+     * Usado nos atendimentos de balcão, quitados em dinheiro, maquininha ou
+     * Pix direto. Diferente do fluxo online, não há gateway envolvido: o valor
+     * entra no caixa no ato, então o pagamento nasce `aprovado` e passa a
+     * contar no faturamento.
+     *
+     * @throws RuntimeException se o agendamento já estiver quitado
+     */
+    public function registrarRecebimentoPresencial(
+        int $agendamentoId, string $forma, float $valor, int $registradoPor
+    ): int {
+        if (!array_key_exists($forma, self::FORMAS_BALCAO)) {
+            throw new InvalidArgumentException('Forma de recebimento inválida.');
+        }
+
+        if ($valor <= 0) {
+            throw new InvalidArgumentException('O valor recebido deve ser maior que zero.');
+        }
+
+        if ($this->buscarAprovadoDoAgendamento($agendamentoId) !== null) {
+            throw new RuntimeException('Este atendimento já possui pagamento registrado.');
+        }
+
+        // O identificador deixa claro na conciliação que não veio do gateway
+        $referencia = 'BALCAO-' . $agendamentoId . '-' . strtoupper(bin2hex(random_bytes(4)));
+
+        $id = $this->registrar($agendamentoId, $forma, $valor, [
+            'transacao_id' => $referencia,
+            'status'       => 'aprovado',
+        ]);
+
+        (new AuditModel())->registrar(
+            'recebimento_presencial', 'pagamentos', $id, null,
+            [
+                'agendamento_id' => $agendamentoId,
+                'forma'          => $forma,
+                'valor'          => $valor,
+                'referencia'     => $referencia,
+                'registrado_por' => $registradoPor,
+            ]
+        );
+
+        return $id;
     }
 
     /**

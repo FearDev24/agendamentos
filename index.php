@@ -132,6 +132,7 @@ $rotas = [
     'GET /admin/agenda'             => [AdminController::class, 'agenda'],
     'POST /admin/agenda/manual'     => [AdminController::class, 'agendarManualmente'],
     'POST /admin/agenda/cancelar'   => [AdminController::class, 'cancelarAgendamento'],
+    'POST /admin/agenda/pagamento'  => [AdminController::class, 'registrarPagamento'],
 
     // Financeiro e relatórios (exclusivo do Administrador Principal)
     'GET /admin/financeiro'                => [FinanceiroController::class, 'index'],

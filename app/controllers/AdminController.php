@@ -70,7 +70,9 @@ class AdminController extends BaseController {
             'data'           => $data,
             'de'             => $de,
             'ate'            => $ate,
-            'agendamentos'   => $relatorios->agendaDoPeriodo($de, $ate, $profissionalId, $situacao),
+            'agendamentos'   => $this->comSituacaoDePagamento(
+                $relatorios->agendaDoPeriodo($de, $ate, $profissionalId, $situacao)
+            ),
             'contagemPorDia' => $relatorios->contagemPorDia($de, $ate, $profissionalId),
             'profissionais'  => $this->profissionais->listar('', 'ativo'),
             'catalogo'       => $this->servicos->listarAtivos(),
@@ -151,9 +153,78 @@ class AdminController extends BaseController {
             ? ' Desconto de ' . FormatHelper::currency($resultado['valor_desconto']) . ' registrado na auditoria.'
             : '';
 
+        // Recebimento presencial opcional: sem isso o atendimento não entra
+        // no faturamento, já que a receita considera pagamentos compensados.
+        $forma = $this->post('forma_pagamento');
+
+        if ($forma !== '' && $resultado['valor_final'] > 0) {
+            try {
+                (new PagamentoModel())->registrarRecebimentoPresencial(
+                    $resultado['id'], $forma, $resultado['valor_final'], AuthHelper::id()
+                );
+
+                $aviso .= ' Recebimento de ' . FormatHelper::currency($resultado['valor_final'])
+                        . ' em ' . (PagamentoModel::ROTULOS_FORMA[$forma] ?? $forma) . ' registrado.';
+
+            } catch (Throwable $e) {
+                LogModel::erro($e);
+                $aviso .= ' ATENÇÃO: o agendamento foi criado, mas o recebimento não pôde ser registrado.'
+                        . ' Lance o pagamento pela agenda.';
+            }
+        }
+
         $this->comSucesso(
             'Agendamento ' . $resultado['codigo'] . ' criado.' . $aviso,
             '/admin/agenda?data=' . $this->post('data_agendamento')
+        );
+    }
+
+    /**
+     * Registra o recebimento presencial de um atendimento já existente.
+     *
+     * Cobre o caso do agendamento criado sem pagamento no ato — o cliente
+     * quita depois, no balcão.
+     */
+    public function registrarPagamento(): void {
+        AuthHelper::requireAdmin();
+        $this->validarCsrf();
+
+        $agendamentos = new AgendamentoModel();
+        $pagamentos = new PagamentoModel();
+
+        $codigo = $this->post('codigo');
+        $agendamento = $agendamentos->buscarPorCodigo($codigo);
+
+        if ($agendamento === null) {
+            $this->comErro('Agendamento não encontrado.', '/admin/agenda');
+        }
+
+        $devido = $agendamentos->valorDevido($agendamento);
+
+        if ($devido <= 0) {
+            $this->comErro('Este atendimento não possui valor em aberto.', '/admin/agenda?data=' . $agendamento['data_agendamento']);
+        }
+
+        try {
+            $pagamentos->registrarRecebimentoPresencial(
+                (int)$agendamento['id'], $this->post('forma_pagamento'), $devido, AuthHelper::id()
+            );
+
+        } catch (Throwable $e) {
+            $this->comErro($e->getMessage(), '/admin/agenda?data=' . $agendamento['data_agendamento']);
+        }
+
+        // Reserva ainda aguardando pagamento passa a confirmada
+        if ($agendamento['situacao'] === 'aguardando_pagamento') {
+            $pagamentos->aprovar(
+                $pagamentos->buscarPorAgendamento((int)$agendamento['id'])['transacao_id']
+            );
+        }
+
+        $this->comSucesso(
+            'Recebimento de ' . FormatHelper::currency($devido) . ' registrado para '
+            . $agendamento['codigo_reserva'] . '.',
+            '/admin/agenda?data=' . $agendamento['data_agendamento']
         );
     }
 
@@ -218,6 +289,23 @@ class AdminController extends BaseController {
                 : ''),
             '/admin/agenda?data=' . $agendamento['data_agendamento']
         );
+    }
+
+    /**
+     * Acrescenta a cada agendamento o quanto ainda falta receber e a forma já
+     * registrada, para que a agenda mostre quem está em aberto.
+     */
+    private function comSituacaoDePagamento(array $agendamentos): array {
+        $modelo = new AgendamentoModel();
+        $pagamentos = new PagamentoModel();
+
+        foreach ($agendamentos as &$a) {
+            $a['valor_devido'] = $modelo->valorDevido($a);
+            $pagamento = $pagamentos->buscarAprovadoDoAgendamento((int)$a['id']);
+            $a['forma_paga'] = $pagamento['forma_pagamento'] ?? null;
+        }
+
+        return $agendamentos;
     }
 
     /**

@@ -302,6 +302,85 @@ $t->verificar('Cancelamento pelo estabelecimento é sempre no prazo', $resultado
 $t->igual('Reembolso integral mesmo em cima da hora', 100.0, $resultadoCancel['reembolso']);
 
 // =====================================================================
+$t->grupo('5b. Recebimento presencial (balcão)');
+
+$t->verificar('ENUM de pagamentos aceita `dinheiro`',
+    in_array('dinheiro', PagamentoModel::FORMAS, true));
+
+$colunaEnum = (string)$pdo->query(
+    "SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pagamentos' AND COLUMN_NAME = 'forma_pagamento'"
+)->fetchColumn();
+$t->verificar('Banco aceita a forma `dinheiro`', strpos($colunaEnum, "'dinheiro'") !== false, $colunaEnum);
+
+$receitaAntes = $relatorios->receitaNoPeriodo($MES_DE, $MES_ATE);
+
+// Agendamento de balcão sem pagamento não entra no faturamento
+$semPagamento = $agendamentos->criarManual($idCliente, $idProf, $amanha, '08:00', [$idServico]);
+$t->igual('Atendimento de balcão sem recebimento NÃO altera a receita',
+    $receitaAntes, $relatorios->receitaNoPeriodo($MES_DE, $MES_ATE));
+
+$agSemPag = $agendamentos->buscarPorCodigo($semPagamento['codigo']);
+$t->igual('Valor fica em aberto', 100.0, $agendamentos->valorDevido($agSemPag));
+
+// Registrando o recebimento em dinheiro
+$idPagBalcao = $pagamentos->registrarRecebimentoPresencial(
+    $semPagamento['id'], 'dinheiro', 100.00, $idPrincipal
+);
+$t->verificar('Recebimento presencial registrado', $idPagBalcao > 0);
+
+$pgBalcao = $pagamentos->buscarPorId($idPagBalcao);
+$t->igual('Forma gravada como dinheiro', 'dinheiro', $pgBalcao['forma_pagamento']);
+$t->igual('Nasce já aprovado', 'aprovado', $pgBalcao['status_pagamento']);
+$t->verificar('Data de compensação preenchida', $pgBalcao['pago_em'] !== null);
+$t->verificar('Referência identifica origem de balcão',
+    strpos($pgBalcao['transacao_id'], 'BALCAO-') === 0, $pgBalcao['transacao_id']);
+
+$t->igual('Receita passa a incluir o recebimento em dinheiro',
+    round($receitaAntes + 100.0, 2), round($relatorios->receitaNoPeriodo($MES_DE, $MES_ATE), 2));
+$t->igual('Valor deixa de estar em aberto', 0.0,
+    $agendamentos->valorDevido($agendamentos->buscarPorCodigo($semPagamento['codigo'])));
+
+$t->verificar('Dinheiro aparece no detalhamento por forma',
+    in_array('dinheiro', array_column($relatorios->receitaPorFormaDePagamento($MES_DE, $MES_ATE), 'forma_pagamento'), true));
+
+// Recebimento é auditado
+$t->verificar('Recebimento presencial é auditado',
+    (int)$pdo->query("SELECT COUNT(*) FROM audit_logs WHERE acao = 'recebimento_presencial'")->fetchColumn() > 0);
+
+// Proteções
+$erroDuplo = '';
+try {
+    $pagamentos->registrarRecebimentoPresencial($semPagamento['id'], 'dinheiro', 100.00, $idPrincipal);
+} catch (RuntimeException $e) { $erroDuplo = $e->getMessage(); }
+$t->verificar('Não é possível registrar recebimento duas vezes',
+    strpos($erroDuplo, 'já possui pagamento') !== false, $erroDuplo);
+
+$erroForma = false;
+try {
+    $pagamentos->registrarRecebimentoPresencial($semPagamento['id'], 'bitcoin', 10.00, $idPrincipal);
+} catch (InvalidArgumentException $e) { $erroForma = true; }
+$t->verificar('Forma de recebimento inválida é rejeitada', $erroForma);
+
+$erroValor = false;
+try {
+    $novo = $agendamentos->criarManual($idCliente, $idProf, $amanha, '08:45', [$idServico]);
+    $pagamentos->registrarRecebimentoPresencial($novo['id'], 'dinheiro', 0, $idPrincipal);
+} catch (InvalidArgumentException $e) { $erroValor = true; }
+$t->verificar('Valor zero é rejeitado', $erroValor);
+
+// Agendamento manual já com recebimento no ato
+$receitaAntes2 = $relatorios->receitaNoPeriodo($MES_DE, $MES_ATE);
+$comPagamento = $agendamentos->criarManual($idCliente, $idProf, $amanha, '09:30', [$idServico],
+    ['tipo' => 'fixo', 'valor' => 20.00, 'justificativa' => 'Desconto de balcao']);
+$pagamentos->registrarRecebimentoPresencial(
+    $comPagamento['id'], 'dinheiro', $comPagamento['valor_final'], $idPrincipal
+);
+$t->igual('Recebimento considera o valor já com desconto', 80.0, $comPagamento['valor_final']);
+$t->igual('Receita cresce pelo valor efetivamente cobrado',
+    round($receitaAntes2 + 80.0, 2), round($relatorios->receitaNoPeriodo($MES_DE, $MES_ATE), 2));
+
+// =====================================================================
 $t->grupo('6. Relatórios operacionais');
 
 $filtros = ['de' => $MES_DE, 'ate' => $MES_ATE, 'profissional_id' => '', 'situacao' => '', 'servico_id' => ''];
@@ -537,7 +616,8 @@ $csrf = $principalHttp->csrfDe('/admin/agenda');
 $principalHttp->post('/admin/agenda/manual', [
     'csrf_token' => $csrf, 'cliente_email' => $emailNovo,
     'cliente_nome' => 'Cliente Criado no Balcao', 'cliente_telefone' => '(11) 90000-0000',
-    'profissional_id' => (string)$idProf, 'data_agendamento' => $amanha, 'hora' => '10:00',
+    // 10:00 conflitaria com o atendimento das 09:30 do grupo 5b
+    'profissional_id' => (string)$idProf, 'data_agendamento' => $amanha, 'hora' => '11:00',
     'servicos' => [$idServico],
     'desconto_tipo' => 'fixo', 'desconto_valor' => '', 'desconto_justificativa' => '',
 ]);
@@ -551,6 +631,65 @@ $t->verificar('Agendamento do balcão criado',
 // Auditoria do agendamento manual
 $t->verificar('Agendamento manual é auditado',
     (int)$pdo->query("SELECT COUNT(*) FROM audit_logs WHERE entidade = 'agendamentos' AND acao = 'criar'")->fetchColumn() > 0);
+
+// Agendamento de balcão com recebimento no ato, pela interface
+$receitaAntesHttp = $relatorios->receitaNoPeriodo($MES_DE, $MES_ATE);
+
+$csrf = $principalHttp->csrfDe('/admin/agenda');
+$principalHttp->post('/admin/agenda/manual', [
+    'csrf_token' => $csrf, 'cliente_email' => PREFIXO_TESTE . 'cliente@local.test',
+    'cliente_nome' => '', 'cliente_telefone' => '',
+    'profissional_id' => (string)$idProf, 'data_agendamento' => $amanha, 'hora' => '13:00',
+    'servicos' => [$idServico],
+    'desconto_tipo' => 'fixo', 'desconto_valor' => '', 'desconto_justificativa' => '',
+    'forma_pagamento' => 'dinheiro',
+]);
+
+$t->igual('Recebimento no ato entra na receita pela interface',
+    round($receitaAntesHttp + 100.0, 2), round($relatorios->receitaNoPeriodo($MES_DE, $MES_ATE), 2));
+
+$principalHttp->get('/admin/agenda?data=' . $amanha);
+$t->verificar('Mensagem confirma o recebimento registrado',
+    $principalHttp->corpoContem('Recebimento de'));
+
+// Registro de recebimento posterior, pela agenda
+$aReceber = $agendamentos->criarManual($idCliente, $idProf, $amanha, '19:00', [$idServico]);
+$receitaAntesPosterior = $relatorios->receitaNoPeriodo($MES_DE, $MES_ATE);
+
+$principalHttp->get('/admin/agenda?data=' . $amanha);
+$t->verificar('Agenda marca o atendimento como em aberto',
+    $principalHttp->corpoContem('em aberto'));
+
+$csrf = $principalHttp->csrfDe('/admin/agenda?data=' . $amanha);
+$principalHttp->post('/admin/agenda/pagamento', [
+    'csrf_token' => $csrf, 'codigo' => $aReceber['codigo'], 'forma_pagamento' => 'dinheiro',
+]);
+
+$t->igual('Recebimento posterior entra na receita',
+    round($receitaAntesPosterior + 100.0, 2), round($relatorios->receitaNoPeriodo($MES_DE, $MES_ATE), 2));
+$t->igual('Atendimento deixa de ter valor em aberto', 0.0,
+    $agendamentos->valorDevido($agendamentos->buscarPorCodigo($aReceber['codigo'])));
+
+// Cobrar duas vezes o mesmo atendimento é impedido
+$csrf = $principalHttp->csrfDe('/admin/agenda?data=' . $amanha);
+$principalHttp->post('/admin/agenda/pagamento', [
+    'csrf_token' => $csrf, 'codigo' => $aReceber['codigo'], 'forma_pagamento' => 'dinheiro',
+]);
+$t->igual('Segundo recebimento no mesmo atendimento é recusado', 1,
+    (int)$pdo->query("SELECT COUNT(*) FROM pagamentos p
+                      INNER JOIN agendamentos a ON a.id = p.agendamento_id
+                      WHERE a.codigo_reserva = " . $pdo->quote($aReceber['codigo']))->fetchColumn());
+
+// O cliente nunca vê 'dinheiro' como opção no checkout online.
+// Os atendimentos de balcão criados acima ocupam o limite de 4 ativos por
+// cliente; concluí-los libera espaço sem desfazer a receita já apurada.
+$pdo->prepare("UPDATE agendamentos SET situacao = 'concluido'
+               WHERE cliente_id = ? AND situacao = 'confirmado'")->execute([$idCliente]);
+
+$reservaOnline = $agendamentos->criarReserva($idCliente, $idProf, $amanha, '17:30', [$idServico]);
+$clienteHttp->get('/checkout/' . $reservaOnline['codigo']);
+$t->verificar('Checkout online NÃO oferece pagamento em dinheiro',
+    !$clienteHttp->corpoContem('value="dinheiro"'));
 
 // Promoção pela interface
 $csrf = $principalHttp->csrfDe('/admin/promocoes');
