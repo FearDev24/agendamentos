@@ -30,6 +30,14 @@
                     <a href="<?= $baseUrl ?>/recuperar-senha" class="text-gold text-decoration-none">Esqueci minha senha</a>
                     <a href="<?= $baseUrl ?>/cadastro" class="text-gold text-decoration-none">Criar conta</a>
                 </div>
+
+                <!-- A vitrine deixou de ser a tela inicial: quem ainda não tem
+                     conta precisa de um caminho para conhecer preços e serviços. -->
+                <hr class="border-secondary-dark my-4">
+                <p class="text-center text-muted-custom mb-0">
+                    Só quer dar uma olhada?
+                    <a href="<?= $baseUrl ?>/inicio" class="text-gold text-decoration-none">Ver serviços e preços</a>
+                </p>
             </div>
         </div>
     </div>

@@ -104,7 +104,9 @@ $rota = Router::caminhoAtual($config['app']['url']);
 // -----------------------------------------------------------------
 $rotas = [
     // Público
+    // '/' leva o visitante ao login; a vitrine continua pública em /inicio
     'GET /'                    => [HomeController::class, 'index'],
+    'GET /inicio'              => [HomeController::class, 'vitrine'],
 
     // Aplicativo instalável: gerado por PHP porque o caminho base
     // muda entre o ambiente local e a hospedagem de produção

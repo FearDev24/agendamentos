@@ -34,18 +34,30 @@ $csrf = SessionHelper::generateCsrfToken();
 <a href="#conteudo-principal" class="pular-para-conteudo">Pular para o conteúdo</a>
 
 <header class="navbar navbar-expand-lg border-bottom border-secondary-dark bg-surface-container py-3">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center gap-2 text-gold fw-bold" href="<?= $baseUrl ?>/">
+    <!-- flex-nowrap: sem isto o nome do estabelecimento toma a linha inteira no
+         celular e empurra o botão de entrar e o menu para uma segunda linha. -->
+    <div class="container flex-nowrap">
+        <a class="navbar-brand d-flex align-items-center gap-2 text-gold fw-bold text-truncate me-2" href="<?= $baseUrl ?>/">
             <img src="<?= $baseUrl ?>/public/assets/img/logojablonskiprincipal.png" alt="" height="40">
-            <span><?= htmlspecialchars($appName, ENT_QUOTES, 'UTF-8') ?></span>
+            <span class="text-truncate"><?= htmlspecialchars($appName, ENT_QUOTES, 'UTF-8') ?></span>
         </a>
-        <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
-                aria-controls="navbarMain" aria-expanded="false" aria-label="Abrir menu de navegação">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <?php if (!$logado): ?>
+                <!-- No celular o menu sanfonado escondia o acesso à conta, deixando
+                     "Agendar" como única ação visível. Fora do collapse, o Entrar
+                     fica sempre à mão; em telas grandes os botões do fim da barra
+                     já cumprem esse papel. -->
+                <a href="<?= $baseUrl ?>/login" class="btn btn-outline-gold px-3 d-lg-none">Entrar</a>
+            <?php endif; ?>
+
+            <button class="navbar-toggler text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                    aria-controls="navbarMain" aria-expanded="false" aria-label="Abrir menu de navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link text-on-surface hover-gold" href="<?= $baseUrl ?>/">Início</a></li>
+                <li class="nav-item"><a class="nav-link text-on-surface hover-gold" href="<?= $baseUrl ?>/inicio">Início</a></li>
                 <li class="nav-item"><a class="nav-link text-on-surface hover-gold" href="<?= $baseUrl ?>/agendar">Agendar</a></li>
                 <?php if ($logado): ?>
                     <li class="nav-item">

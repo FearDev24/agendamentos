@@ -158,14 +158,24 @@ $t->verificar('Categoria com nome curto é rejeitada', $erroCategoria);
 // =====================================================================
 $t->grupo('3. Cálculo financeiro');
 
+// Os totais são medidos por diferença: o banco de desenvolvimento pode já
+// conter movimento do mês (uma demonstração, um atendimento de balcão), e
+// comparar valores absolutos faria o teste falhar por dado alheio a ele.
+$base = $relatorios->resumoFinanceiro($MES_DE, $MES_ATE);
+
 $agendamentoPago('FIN1', $HOJE, '09:00:00', 100.00);
 $agendamentoPago('FIN2', $HOJE, '10:00:00', 200.00);
 
 $resumo = $relatorios->resumoFinanceiro($MES_DE, $MES_ATE);
 
-$t->igual('Receita bruta soma os pagamentos aprovados', 300.0, $resumo['receita_bruta']);
+$t->igual('Receita bruta soma os pagamentos aprovados', 300.0,
+    round($resumo['receita_bruta'] - $base['receita_bruta'], 2));
 $t->igual('Despesas do período', 300.5, $resumo['despesas']);
-$t->igual('Lucro líquido = receita − despesas', -0.5, $resumo['lucro_liquido']);
+// Invariante, e não um valor fixo: as despesas já entraram na medição de base,
+// então o delta do lucro seria a receita inteira e não diria nada de útil.
+$t->igual('Lucro líquido = receita − despesas',
+    round($resumo['receita_liquida'] - $resumo['despesas'], 2),
+    round($resumo['lucro_liquido'], 2));
 
 // Estorno reduz a receita
 $idEstornado = $agendamentoPago('FIN3', $HOJE, '11:00:00', 50.00);
@@ -173,9 +183,12 @@ $pgEstorno = $pagamentos->buscarAprovadoDoAgendamento($idEstornado);
 $pagamentos->estornar($pgEstorno['transacao_id']);
 
 $resumo = $relatorios->resumoFinanceiro($MES_DE, $MES_ATE);
-$t->igual('Estorno sai da receita líquida', 300.0, $resumo['receita_liquida']);
-$t->igual('Estorno é contabilizado separadamente', 50.0, $resumo['estornos']);
-$t->igual('Receita bruta continua incluindo o valor estornado', 350.0, $resumo['receita_bruta']);
+$t->igual('Estorno sai da receita líquida', 300.0,
+    round($resumo['receita_liquida'] - $base['receita_liquida'], 2));
+$t->igual('Estorno é contabilizado separadamente', 50.0,
+    round($resumo['estornos'] - $base['estornos'], 2));
+$t->igual('Receita bruta continua incluindo o valor estornado', 350.0,
+    round($resumo['receita_bruta'] - $base['receita_bruta'], 2));
 
 // Pagamento pendente não vira receita
 $pdo->prepare("
@@ -187,7 +200,7 @@ $idPendente = (int)$pdo->lastInsertId();
 $pagamentos->registrar($idPendente, 'pix', 999.00, ['transacao_id' => 'F8-PEND', 'status' => 'pendente']);
 
 $t->igual('Pagamento pendente NÃO entra no faturamento', 350.0,
-    $relatorios->resumoFinanceiro($MES_DE, $MES_ATE)['receita_bruta']);
+    round($relatorios->resumoFinanceiro($MES_DE, $MES_ATE)['receita_bruta'] - $base['receita_bruta'], 2));
 
 // Margem
 $resumo = $relatorios->resumoFinanceiro($MES_DE, $MES_ATE);
@@ -794,7 +807,7 @@ $t->verificar('Promoção vencida não oferece agendamento',
     !$publico->corpoContem('Agendar Agora'));
 
 // Vitrine mostra as promoções vigentes
-$publico->get('/');
+$publico->get('/inicio');
 $t->verificar('Vitrine exibe a promoção vigente', $publico->corpoContem(PREFIXO_TESTE . 'Promo HTTP'));
 $t->verificar('Vitrine NÃO exibe promoção vencida', !$publico->corpoContem(PREFIXO_TESTE . 'Vencida'));
 $t->verificar('Vitrine NÃO exibe promoção futura', !$publico->corpoContem(PREFIXO_TESTE . 'Futura'));
@@ -815,7 +828,7 @@ $t->verificar('Título malicioso não é renderizado como script',
     !$principalHttp->corpoContem('<script>alert(8)</script>'));
 $t->verificar('Conteúdo aparece escapado', $principalHttp->corpoContem('&lt;script&gt;'));
 
-$publico->get('/');
+$publico->get('/inicio');
 $t->verificar('Vitrine também escapa o título malicioso',
     !$publico->corpoContem('<script>alert(8)</script>'));
 

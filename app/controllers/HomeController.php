@@ -10,7 +10,25 @@ if (!defined('APP_EXEC')) { die('Acesso direto negado.'); }
  */
 class HomeController extends BaseController {
 
+    /**
+     * Porta de entrada do sistema.
+     *
+     * Visitante começa pela conta, não pela vitrine: o agendamento exige login
+     * de qualquer forma, e no celular a vitrine oferecia como única ação
+     * visível o "Agendar Horário" — a pessoa preenchia o assistente inteiro
+     * para só então descobrir que precisava entrar. A vitrine continua pública
+     * em /inicio, ligada a partir da tela de login e do menu.
+     */
     public function index(): void {
+        if (!AuthHelper::check()) {
+            $this->redirect('/login');
+        }
+
+        $this->vitrine();
+    }
+
+    /** Vitrine Pública (docs/FSD.md Módulo 12.1), acessível a qualquer um. */
+    public function vitrine(): void {
         $servicos = new ServicoModel();
         $profissionais = new ProfissionalModel();
         $settings = new SettingModel();

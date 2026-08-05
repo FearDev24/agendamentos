@@ -305,7 +305,7 @@ $t->verificar('Restauração pela interface funciona', $servicosM->buscarPorId($
 $t->grupo('6. Acessibilidade');
 
 $publico = new HttpClient($baseUrl);
-$publico->get('/');
+$publico->get('/inicio');
 
 $t->verificar('Página oferece atalho "pular para o conteúdo"',
     $publico->corpoContem('pular-para-conteudo'));

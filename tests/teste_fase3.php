@@ -234,7 +234,10 @@ $t->grupo('8. HTTP: rotas públicas e códigos de resposta');
 
 $http = new HttpClient($baseUrl);
 
-$t->igual('GET / responde 200', 200, $http->get('/')->ultimoStatus);
+// A raiz leva o visitante à tela de conta; a vitrine mudou para /inicio
+$t->igual('GET / redireciona o visitante', 302, $http->get('/')->ultimoStatus);
+$t->igual('GET / aponta para o login', '/login', $http->destinoRedirecionamento());
+$t->igual('GET /inicio responde 200', 200, $http->get('/inicio')->ultimoStatus);
 $t->igual('GET /login responde 200', 200, $http->get('/login')->ultimoStatus);
 $t->igual('GET /cadastro responde 200', 200, $http->get('/cadastro')->ultimoStatus);
 $t->igual('GET /recuperar-senha responde 200', 200, $http->get('/recuperar-senha')->ultimoStatus);

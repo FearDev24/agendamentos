@@ -409,7 +409,7 @@ $pdo->prepare("DELETE FROM agendamentos WHERE cliente_id = ?")->execute([$idClie
 $t->grupo('9. HTTP: vitrine pública');
 
 $visitante = new HttpClient($baseUrl);
-$visitante->get('/');
+$visitante->get('/inicio');
 
 $t->igual('Vitrine responde 200', 200, $visitante->ultimoStatus);
 $t->verificar('Vitrine lista os serviços', $visitante->corpoContem(PREFIXO_TESTE . 'Corte'));
@@ -568,7 +568,7 @@ $idXss = $servicosModel->criar([
     'nome' => PREFIXO_TESTE . '<script>alert(5)</script>', 'descricao' => '', 'duracao_minutos' => 30,
     'preco' => 10, 'orientacoes' => '', 'status' => 'ativo', 'previsao_retorno' => '',
 ]);
-$visitante->get('/');
+$visitante->get('/inicio');
 $t->verificar('Nome malicioso NÃO é renderizado como script na vitrine',
     !$visitante->corpoContem('<script>alert(5)</script>'));
 $t->verificar('Conteúdo aparece escapado', $visitante->corpoContem('&lt;script&gt;'));

@@ -179,7 +179,7 @@ $conferirAssetsDaPagina = function (string $rota, string $rotulo) use ($http, $t
     }
 };
 
-$conferirAssetsDaPagina('/', 'vitrine');
+$conferirAssetsDaPagina('/inicio', 'vitrine');
 $conferirAssetsDaPagina('/login', 'login');
 $conferirAssetsDaPagina('/cadastro', 'cadastro');
 $conferirAssetsDaPagina('/agendar', 'wizard passo 1');
@@ -346,7 +346,7 @@ $t->verificar('Service Worker NÃO faz cache de páginas HTML nem de API',
     && strpos((string)$conteudoSw, "fetch(requisicao).catch") !== false);
 
 // --- Marcações no HTML ---
-$http->get('/');
+$http->get('/inicio');
 $t->verificar('Página declara o manifesto', $http->corpoContem('rel="manifest"'));
 $t->verificar('Página declara theme-color', $http->corpoContem('name="theme-color"'));
 $t->verificar('Página declara apple-touch-icon', $http->corpoContem('rel="apple-touch-icon"'));
