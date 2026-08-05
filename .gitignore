@@ -8,13 +8,18 @@ config/config.php
 
 # Logs gerados em execução
 logs/*.log
+logs/emails/
 
 # Arquivos enviados por usuários
 public/uploads/*
 !public/uploads/.htaccess
 
-# Dependências instaladas
-/vendor/
+# Dependências instaladas via Composer.
+# O PHPMailer é versionado: o projeto não usa Composer, e a biblioteca precisa
+# acompanhar o repositório para funcionar no deploy (docs/FSD.md seção 3).
+/vendor/*
+!/vendor/PHPMailer/
+!/vendor/.htaccess
 composer.lock
 
 # Artefatos de sistema operacional e editores

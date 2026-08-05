@@ -1,6 +1,6 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row g-4">
         <div class="col-lg-3">
             <?php require __DIR__ . '/../layouts/sidebar.php'; ?>
@@ -116,6 +116,7 @@
                     <div class="row g-2 align-items-end">
                         <div class="col-md-9">
                             <input type="text" class="campo-form" id="link-promocao" readonly
+                                   aria-label="Endereço público desta promoção"
                                    value="<?= htmlspecialchars($linkPublico, ENT_QUOTES, 'UTF-8') ?>">
                         </div>
                         <div class="col-md-3 d-flex gap-2">

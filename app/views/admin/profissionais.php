@@ -1,6 +1,6 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row g-4">
         <div class="col-lg-3">
             <?php require __DIR__ . '/../layouts/sidebar.php'; ?>
@@ -142,12 +142,16 @@
                                             </div>
                                         </td>
                                         <td><input type="time" class="campo-form" name="hora_inicio[<?= $dia ?>]"
+                                                   aria-label="<?= $nomeDia ?>: horário de início"
                                                    value="<?= $h ? substr($h['hora_inicio'], 0, 5) : '09:00' ?>"></td>
                                         <td><input type="time" class="campo-form" name="hora_fim[<?= $dia ?>]"
+                                                   aria-label="<?= $nomeDia ?>: horário de término"
                                                    value="<?= $h ? substr($h['hora_fim'], 0, 5) : '18:00' ?>"></td>
                                         <td><input type="time" class="campo-form" name="almoco_inicio[<?= $dia ?>]"
+                                                   aria-label="<?= $nomeDia ?>: início do almoço"
                                                    value="<?= $h && $h['almoco_inicio'] ? substr($h['almoco_inicio'], 0, 5) : '' ?>"></td>
                                         <td><input type="time" class="campo-form" name="almoco_fim[<?= $dia ?>]"
+                                                   aria-label="<?= $nomeDia ?>: fim do almoço"
                                                    value="<?= $h && $h['almoco_fim'] ? substr($h['almoco_fim'], 0, 5) : '' ?>"></td>
                                     </tr>
                                 <?php endforeach; ?>

@@ -328,10 +328,54 @@ class AdminController extends BaseController {
         return [$data, $data];
     }
 
+    /**
+     * Trilha de auditoria, eventos de segurança, erros e restauração de
+     * registros excluídos (docs/FSD.md seções 17, 18 e 19).
+     */
     public function auditoria(): void {
         AuthHelper::requireRole('admin_principal');
 
-        $this->render('admin/auditoria', ['pageTitle' => 'Histórico de Auditoria']);
+        $filtros = [
+            'de'         => $this->ehDataValida($this->get('de')) ? $this->get('de') : date('Y-m-d', strtotime('-30 days')),
+            'ate'        => $this->ehDataValida($this->get('ate')) ? $this->get('ate') : date('Y-m-d'),
+            'usuario_id' => $this->get('usuario'),
+            'entidade'   => $this->get('entidade'),
+            'acao'       => $this->get('acao'),
+        ];
+
+        $aba = in_array($this->get('aba'), ['auditoria', 'seguranca', 'erros', 'excluidos'], true)
+            ? $this->get('aba') : 'auditoria';
+
+        $this->render('admin/auditoria', [
+            'pageTitle'  => 'Auditoria e Logs',
+            'aba'        => $aba,
+            'filtros'    => $filtros,
+            'registros'  => $this->auditoria->listar($filtros),
+            'disponivel' => $this->auditoria->valoresDisponiveis(),
+            'seguranca'  => $this->auditoria->eventosDeSeguranca($filtros),
+            'erros'      => $this->auditoria->errosRecentes(),
+            'excluidos'  => $this->auditoria->registrosExcluidos(),
+        ]);
+    }
+
+    /**
+     * Restaura um registro excluído logicamente.
+     */
+    public function restaurarRegistro(): void {
+        AuthHelper::requireRole('admin_principal');
+        $this->validarCsrf();
+
+        try {
+            $restaurou = $this->auditoria->restaurar($this->post('tabela'), (int)$this->post('id', '0'));
+        } catch (InvalidArgumentException $e) {
+            $this->comErro($e->getMessage(), '/admin/auditoria?aba=excluidos');
+        }
+
+        if (!$restaurou) {
+            $this->comErro('Não foi possível restaurar este registro.', '/admin/auditoria?aba=excluidos');
+        }
+
+        $this->comSucesso('Registro restaurado com sucesso.', '/admin/auditoria?aba=excluidos');
     }
 
     // =================================================================

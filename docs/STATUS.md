@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 8 (Painel Administrativo Operacional, Financeiro e Promoções) Concluída. Agenda administrativa nas três visões, agendamento manual com desconto justificado, controle de despesas com comprovantes, cálculo de lucro líquido, promoções com link público e exportação em CSV/Excel. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 = **1.216 testes passando**.
+**Estado Atual**: **PROJETO CONCLUÍDO — as 9 fases do `docs/PLANO.md` foram entregues.** A Fase 9 fechou os componentes transversais: tratamento global de erros, tela de auditoria com restauração de registros, PHPMailer com SMTP, Cron de lembretes automáticos e polimento de acessibilidade. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 + 160 = **1.376 testes passando**, incluindo a verificação dos 12 Critérios de Aceitação do FSD.
 
 ### Aplicativo instalável (PWA) — 05/08/2026
 O sistema pode ser instalado na tela inicial do celular e abre sem a barra do navegador.
@@ -29,15 +29,75 @@ As insígnias e o logotipo eram PNGs de 1024px pesando 1,8 MB cada, exibidos a 9
 - [x] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária** *(Concluída em 05/08/2026)*
 - [x] **Fase 7 - Áreas Restritas do Cliente e do Profissional** *(Concluída em 05/08/2026)*
 - [x] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções** *(Concluída em 05/08/2026)*
-- [ ] **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
+- [x] **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final** *(Concluída em 05/08/2026)*
 
 ---
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções
-- **Fase Pendente**: **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
-- **Próximo Passo Recomendado**: Implementar a tela de consulta da auditoria, configurar o PHPMailer com SMTP real, criar o Cron Job de lembretes de 24h e 2h, e executar a bateria final contra os 12 Critérios de Aceitação do FSD.
+- **Fase Concluída**: Fase 9 - Transversais (última do plano)
+- **Fase Pendente**: nenhuma. O escopo do `docs/PLANO.md` está completo.
+- **Próximo Passo Recomendado**: Preparar o deploy em produção seguindo o checklist abaixo.
+
+---
+
+## Checklist de Deploy em Produção
+
+1. **Enviar os arquivos** do repositório para a hospedagem, exceto `tests/` (opcional em produção).
+2. **Criar o `config/config.php`** a partir de `config/config.example.php` e preencher:
+   - Credenciais reais do MySQL;
+   - `'url'` com o domínio final (sem barra no fim);
+   - `'env' => 'production'` — isso **desliga a exibição de erros** e **ativa o envio real de e-mails**;
+   - SMTP da Hostnet (host, porta, usuário e senha);
+   - Mercado Pago: `access_token`, `public_key`, `webhook_secret` e `'sandbox_mode' => false`.
+3. **Rodar as migrations**: `php database/migrate.php`.
+4. **Trocar a senha do administrador padrão** (`admin@agendabarber.local` / `Admin@123`) no primeiro acesso.
+5. **Cadastrar a URL do webhook** no painel do Mercado Pago: `https://SEU-DOMINIO/webhook/mercadopago`.
+6. **Agendar o Cron** a cada 15 minutos:
+   `0,15,30,45 * * * * /usr/bin/php /caminho/do/projeto/database/cron_lembretes.php >> /caminho/logs/cron.log 2>&1`
+7. **Confirmar o certificado SSL**: sem HTTPS o Service Worker não roda e o app não é instalável.
+8. **Conferir permissões de escrita** em `logs/` e `public/uploads/`.
+9. **Validar** que `https://SEU-DOMINIO/config/config.php` responde 403.
+
+### Pendência para produção
+A tokenização real do cartão exige o SDK JavaScript do Mercado Pago, que precisa ser carregado do domínio deles. É a única exceção à regra de não depender de CDN e vale apenas para a aba de cartão. O Pix funciona sem isso. Alternativa sem CDN: migrar para o Checkout Pro (redirecionamento).
+
+---
+
+## Entregas da Fase 9 (05/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `vendor/PHPMailer/` | PHPMailer 6.9.3 hospedado localmente |
+| `database/cron_lembretes.php` | Rotinas automáticas: reservas, lembretes e promoções |
+| `database/migrations/006_add_controle_lembretes.php` | Marcação dos lembretes enviados |
+| `tests/teste_fase9.php` | 160 testes, incluindo os 12 Critérios de Aceitação |
+
+`MailHelper` foi reescrito com PHPMailer, `AuditModel` ganhou as consultas e a restauração, `index.php` recebeu o tratamento global de erros e a tela de auditoria deixou de ser um placeholder.
+
+### Tratamento global de erros
+`set_exception_handler`, `set_error_handler` e `register_shutdown_function` capturam qualquer falha. Tudo vai para `error_logs`, com contingência em `logs/error.log` se o banco estiver fora. Em produção o usuário vê apenas a página 500; em desenvolvimento, o rastro completo.
+
+### Envio de e-mails
+- **Desenvolvimento**: nada é enviado. A mensagem é gravada em `logs/emails/*.html` para conferência no navegador — sem servidor de e-mail e sem incomodar endereços reais;
+- **Produção**: SMTP autenticado. Falha de envio é registrada e **nunca derruba a operação** que a originou;
+- Layout com estilos inline e tabela, para funcionar no Outlook.
+
+### Cron de rotinas automáticas
+Roda a cada 15 minutos e faz três coisas: expira reservas vencidas, envia lembretes de 24h e 2h, e expira promoções vencidas. O envio é marcado no agendamento, então reexecutar não duplica mensagem. A flag `--simular` mostra o que seria feito sem gravar nada.
+
+### Auditoria
+Tela com quatro abas: trilha de auditoria (com filtro por autor, entidade, ação e período), eventos de segurança, erros da aplicação e registros excluídos com restauração. Dados sensíveis (senha, hash, token) são removidos antes de gravar.
+
+### Acessibilidade
+Atalho "pular para o conteúdo", foco visível em todos os controles, respeito a `prefers-reduced-motion`, alvos de toque de 44px no celular e `aria-label` em todo campo sem rótulo visível.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase9.php
+C:\xampp\php\php.exe database/cron_lembretes.php --simular
+```
 
 ---
 

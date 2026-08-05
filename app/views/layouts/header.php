@@ -30,6 +30,9 @@ $csrf = SessionHelper::generateCsrfToken();
     <link rel="stylesheet" href="<?= FormatHelper::asset('assets/css/style.css') ?>">
 </head>
 <body class="bg-surface text-on-surface d-flex flex-column min-vh-100">
+<!-- Primeiro elemento focável: permite pular a navegação com o teclado -->
+<a href="#conteudo-principal" class="pular-para-conteudo">Pular para o conteúdo</a>
+
 <header class="navbar navbar-expand-lg border-bottom border-secondary-dark bg-surface-container py-3">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2 text-gold fw-bold" href="<?= $baseUrl ?>/">

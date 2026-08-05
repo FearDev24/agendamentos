@@ -28,6 +28,63 @@ ini_set('error_log', __DIR__ . '/logs/error.log');
 
 require_once __DIR__ . '/app/bootstrap.php';
 
+/**
+ * Tratamento global de erros (docs/FSD.md seção 19.1).
+ *
+ * Toda exceção não capturada e todo erro do PHP são gravados em `error_logs`,
+ * com contingência em `logs/error.log` caso o banco esteja indisponível. O
+ * usuário final vê apenas uma mensagem amigável; os detalhes técnicos ficam
+ * restritos ao log.
+ */
+set_error_handler(function (int $severidade, string $mensagem, string $arquivo, int $linha): bool {
+    // Respeita o error_reporting configurado (ex: @ suprimindo o aviso)
+    if (!(error_reporting() & $severidade)) {
+        return false;
+    }
+
+    throw new ErrorException($mensagem, 0, $severidade, $arquivo, $linha);
+});
+
+set_exception_handler(function (Throwable $e) use ($config): void {
+    LogModel::erro($e);
+
+    if (($config['app']['env'] ?? 'production') === 'development') {
+        http_response_code(500);
+        echo '<pre style="background:#0f1416;color:#ffb4ab;padding:16px;font:13px monospace;">';
+        echo htmlspecialchars((string)$e, ENT_QUOTES, 'UTF-8');
+        echo '</pre>';
+        return;
+    }
+
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    $pageTitle = 'Erro Interno';
+    require __DIR__ . '/app/views/errors/500.php';
+});
+
+/**
+ * Erros fatais escapam do set_exception_handler: só o shutdown os alcança.
+ */
+register_shutdown_function(function () use ($config): void {
+    $erro = error_get_last();
+
+    if ($erro === null || !in_array($erro['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        return;
+    }
+
+    LogModel::erro(new ErrorException(
+        $erro['message'], 0, $erro['type'], $erro['file'], $erro['line']
+    ));
+
+    if (($config['app']['env'] ?? 'production') !== 'development' && !headers_sent()) {
+        http_response_code(500);
+        $pageTitle = 'Erro Interno';
+        require __DIR__ . '/app/views/errors/500.php';
+    }
+});
+
 // Cabeçalhos de segurança HTTP (docs/FSD.md seção 24)
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
@@ -109,6 +166,7 @@ $rotas = [
     'POST /profissional/nota'    => [ProfissionalController::class, 'salvarNota'],
     'GET /admin/dashboard'       => [AdminController::class, 'dashboard'],
     'GET /admin/auditoria'       => [AdminController::class, 'auditoria'],
+    'POST /admin/auditoria/restaurar' => [AdminController::class, 'restaurarRegistro'],
 
     // Cadastro de serviços (exclusivo do Administrador Principal)
     'GET /admin/servicos'            => [ServicoController::class, 'index'],
@@ -155,16 +213,5 @@ $rotas = [
 // -----------------------------------------------------------------
 // Despacho
 // -----------------------------------------------------------------
-try {
-    Router::despachar($rotas, $metodo, $rota);
-} catch (Throwable $e) {
-    LogModel::erro($e);
-
-    if (($config['app']['env'] ?? 'production') === 'development') {
-        throw $e;
-    }
-
-    http_response_code(500);
-    $pageTitle = 'Erro Interno';
-    require __DIR__ . '/app/views/errors/500.php';
-}
+// Exceções não capturadas caem no set_exception_handler definido acima
+Router::despachar($rotas, $metodo, $rota);

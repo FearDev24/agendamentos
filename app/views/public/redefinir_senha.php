@@ -1,6 +1,6 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-12 col-md-6 col-lg-5">
             <div class="style-card p-4 p-md-5">

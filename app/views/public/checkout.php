@@ -8,7 +8,7 @@ $metodoAtivo = ($_GET['metodo'] ?? '') === 'cartao' ? 'cartao' : 'pix';
 $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !empty($pagamento['qr_code_pix']);
 ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <h1 class="h3 text-gold mb-4">Pagamento</h1>

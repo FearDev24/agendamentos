@@ -803,6 +803,150 @@ textarea.campo-form {
 .etiqueta-expirada{ background-color: rgba(255, 180, 171, 0.14); border-color: var(--color-error); color: var(--color-error); }
 
 /* ==========================================================================
+   Componentes - Fase 9 (Auditoria e logs)
+   ========================================================================== */
+
+/* Etiquetas por tipo de ação na trilha de auditoria */
+.etiqueta-acao-criar {
+  background-color: rgba(129, 199, 132, 0.14);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.etiqueta-acao-atualizar {
+  background-color: rgba(233, 193, 118, 0.14);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.etiqueta-acao-excluir,
+.etiqueta-acao-cancelamento_administrativo {
+  background-color: rgba(255, 180, 171, 0.14);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.etiqueta-acao-restaurar,
+.etiqueta-acao-pagamento_confirmado,
+.etiqueta-acao-recebimento_presencial {
+  background-color: rgba(190, 200, 209, 0.14);
+  border-color: var(--color-tertiary);
+  color: var(--color-tertiary);
+}
+
+/* Erro expansível */
+.bloco-erro {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: var(--color-surface-low);
+  border: 1px solid var(--color-outline-variant);
+  border-left: 3px solid var(--color-error);
+  border-radius: 4px;
+}
+
+.bloco-erro summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.bloco-erro summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pilha-erro {
+  max-height: 220px;
+  overflow: auto;
+  padding: 0.75rem;
+  margin: 0;
+  background-color: var(--color-surface-lowest);
+  border-radius: 4px;
+  color: var(--color-on-surface-variant);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* Abas usadas como links na auditoria */
+.abas-pagamento .nav-link[href] {
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   Acessibilidade (docs/DESIGN.md)
+   ========================================================================== */
+
+/* Atalho para leitores de tela e navegação por teclado */
+.pular-para-conteudo {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1100;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  border-radius: 0 0 4px 0;
+}
+
+.pular-para-conteudo:focus {
+  left: 0;
+}
+
+/* Foco visível consistente em todos os controles interativos */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Conteúdo visível apenas para leitores de tela */
+.apenas-leitor-de-tela {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Respeita quem configurou o sistema para menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Alvos de toque confortáveis no celular (mínimo recomendado: 44px) */
+@media (max-width: 767px) {
+  .btn,
+  .nav-link,
+  .item-menu {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+  }
+}
+
+/* ==========================================================================
    Convite de instalação como aplicativo (PWA)
    ========================================================================== */
 

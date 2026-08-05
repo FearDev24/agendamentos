@@ -6,7 +6,7 @@ $desconto = $promocao['tipo_desconto'] === 'percentual'
     : FormatHelper::currency((float)$promocao['valor_desconto']) . ' de desconto';
 ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-lg-7">
             <?php if (!$vigente): ?>

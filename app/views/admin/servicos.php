@@ -1,6 +1,6 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row g-4">
         <div class="col-lg-3">
             <?php require __DIR__ . '/../layouts/sidebar.php'; ?>

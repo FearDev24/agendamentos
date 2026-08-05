@@ -1,6 +1,6 @@
 <?php if (!defined('APP_EXEC')) { die('Acesso direto negado.'); } ?>
 
-<main class="container py-5 flex-grow-1">
+<main id="conteudo-principal" tabindex="-1" class="container py-5 flex-grow-1">
     <div class="row justify-content-center">
         <div class="col-lg-9">
             <h1 class="h3 text-gold mb-1">Reagendar Atendimento</h1>

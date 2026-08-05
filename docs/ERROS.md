@@ -19,6 +19,27 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-05 - Cron falhava ao somar dois INTERVAL no MariaDB
+
+- Sintoma: `database/cron_lembretes.php` abortava com erro 1064 de sintaxe SQL ao buscar os agendamentos da janela de lembrete.
+- Causa: A consulta usava `DATE_ADD(NOW(), INTERVAL :horas HOUR + INTERVAL 30 MINUTE)`. O MariaDB não aceita a soma de dois `INTERVAL` dentro de um mesmo `DATE_ADD`.
+- Solução aplicada: Uso de `DATE_ADD` aninhado: `DATE_ADD(DATE_ADD(NOW(), INTERVAL :horas HOUR), INTERVAL 30 MINUTE)`.
+- Como evitar no futuro: Testar toda consulta nova executando-a de fato, e não apenas conferindo a sintaxe do PHP. O erro só apareceu porque o Cron foi executado durante o desenvolvimento.
+
+## 2026-08-05 - Campos de formulário sem rótulo acessível
+
+- Sintoma: A verificação de acessibilidade apontou seis campos sem `label` associado nem `aria-label`: os quatro horários da grade semanal do profissional, o campo do link de compartilhamento da promoção e o comentário da avaliação.
+- Causa: Campos dentro de células de tabela e campos somente leitura foram construídos apoiados no cabeçalho da coluna ou no `placeholder`. Nenhum dos dois é lido como rótulo por leitores de tela.
+- Solução aplicada: Acrescentado `aria-label` descritivo em cada um, incluindo o dia da semana nos horários da jornada.
+- Como evitar no futuro: `placeholder` não é rótulo. Todo campo precisa de `<label for>` ou `aria-label`, e a bateria da Fase 9 passou a verificar isso em todas as Views.
+
+## 2026-08-05 - Análise de HTML quebrada por tags PHP curtas
+
+- Sintoma: A verificação de acessibilidade acusou imagens sem `alt` e campos sem `id` que, na prática, os possuíam.
+- Causa: As expressões regulares usavam `[^>]*` para percorrer os atributos da tag. Como `<?= $var ?>` contém `>`, a análise encerrava a tag prematuramente e não enxergava os atributos seguintes.
+- Solução aplicada: O conteúdo passa por uma remoção prévia dos blocos PHP antes de a estrutura HTML ser analisada.
+- Como evitar no futuro: Ao inspecionar HTML dentro de arquivos PHP, sempre remover os blocos de código antes de aplicar expressões regulares sobre a marcação.
+
 ## 2026-08-05 - Estorno descontado duas vezes do lucro
 
 - Sintoma: Ao estornar um pagamento, o lucro líquido caía pelo dobro do valor devolvido.
