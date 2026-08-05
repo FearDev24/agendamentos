@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 6 (Gateway de Pagamentos, Webhooks e Retenção) Concluída. Checkout com Pix (QR Code e Copia e Cola) e Cartão de Crédito, simulador local de pagamentos, webhook idempotente e confirmação automática do agendamento. Baterias de teste: 111 + 149 + 128 + 153 + 132 = **673 testes passando**.
+**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 111 + 149 + 128 + 153 + 132 + 154 = **827 testes passando**.
 
 ---
 
@@ -13,7 +13,7 @@
 - [x] **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)** *(Concluída em 04/08/2026)*
 - [x] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público** *(Concluída em 04/08/2026)*
 - [x] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária** *(Concluída em 05/08/2026)*
-- [ ] **Fase 7 - Áreas Restritas do Cliente e do Profissional**
+- [x] **Fase 7 - Áreas Restritas do Cliente e do Profissional** *(Concluída em 05/08/2026)*
 - [ ] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
 - [ ] **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
 
@@ -21,9 +21,50 @@
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária
-- **Fase Pendente**: **Fase 7 - Áreas Restritas do Cliente e do Profissional**
-- **Próximo Passo Recomendado**: Desenvolver o painel "Meus Agendamentos" (comprovante, reagendamento com regra de 24h e geração de crédito interno, cancelamento), as insígnias de fidelidade, as avaliações de 1 a 5 estrelas e o painel do profissional.
+- **Fase Concluída**: Fase 7 - Áreas Restritas do Cliente e do Profissional
+- **Fase Pendente**: **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
+- **Próximo Passo Recomendado**: Implementar a agenda administrativa (diária, semanal e mensal), o agendamento manual com desconto justificado, o controle de despesas com comprovantes, o cálculo de lucro líquido, as promoções públicas e a exportação em CSV/Excel.
+
+---
+
+## Entregas da Fase 7 (05/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `app/models/CreditoModel.php` | Créditos internos com validade de 90 dias |
+| `app/models/AvaliacaoModel.php` | Avaliações de 1 a 5 estrelas |
+| `app/models/NotaClienteModel.php` | Observações privadas da equipe |
+| `app/views/cliente/agendamentos.php` | Painel com próximos, histórico, créditos e fidelidade |
+| `app/views/cliente/comprovante.php` | Comprovante com folha de estilo de impressão |
+| `app/views/cliente/reagendar.php` | Reagendamento com troca de serviços |
+| `app/views/profissional/agenda.php` | Operação diária dos atendimentos |
+| `app/views/profissional/notas.php` | Notas privadas sobre o cliente |
+| `tests/teste_fase7.php` | 154 testes de validação da Fase 7 |
+
+`AgendamentoModel` ganhou as operações de cancelamento, reagendamento, aplicação de crédito, fidelidade e agenda do profissional. `ClienteController` e `ProfissionalController` foram reescritos.
+
+### Rotas adicionadas
+`/cliente/agendamento/{codigo}/comprovante` · `/cliente/agendamento/{codigo}/reagendar` · `/cliente/reagendar` · `/cliente/cancelar` · `/cliente/avaliar` · `/cliente/credito` · `/profissional/presenca` · `/profissional/concluir` · `/profissional/falta` · `/profissional/cliente/{id}/notas` · `/profissional/nota`
+
+### Regras de negócio implementadas
+- **Cancelamento com 24h ou mais**: reembolso integral, com estorno acionado no gateway; a situação final passa a `reembolsado`;
+- **Cancelamento com menos de 24h**: sem reembolso, situação `cancelado`;
+- **Crédito interno utilizado sempre volta ao cliente**, mesmo no cancelamento fora do prazo, por não ser dinheiro do estabelecimento;
+- **Reagendamento**: mínimo de 24h de antecedência e limite de 2 por agendamento; valor menor gera crédito, valor maior devolve o agendamento a `aguardando_pagamento` cobrando **apenas a diferença**;
+- **Créditos**: validade de 90 dias, consumo parcial e sempre a partir do que vence primeiro;
+- **Fidelidade**: Bronze 0-4, Prata 5-9, Ouro 10+ atendimentos concluídos;
+- **Avaliação**: 1 a 5 estrelas, apenas em atendimentos concluídos e uma única vez;
+- **Falta**: só pode ser registrada após esgotada a tolerância de atraso;
+- **Notas privadas**: o profissional só acessa as de clientes que já atendeu.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase7.php
+```
+
+### Decisão de interpretação do FSD
+O FSD (Fluxo 2) descreve o cancelamento com reembolso deixando o agendamento em `cancelado`. Como o ENUM prevê também `reembolsado`, o sistema passa a usar esse estado quando o estorno é efetivado, distinguindo o cancelamento com devolução do cancelamento sem direito a reembolso. Para tratar os dois casos como `cancelado`, o ajuste é pontual em `PagamentoModel::estornar()`.
 
 ---
 

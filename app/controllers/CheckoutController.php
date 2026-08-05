@@ -36,6 +36,8 @@ class CheckoutController extends BaseController {
             'servicos'    => $this->agendamentos->servicosDoAgendamento((int)$agendamento['id']),
             'pagamento'   => $pagamento,
             'emSandbox'   => GatewayFactory::emSandbox(),
+            'valorDevido' => $this->agendamentos->valorDevido($agendamento),
+            'saldoCredito'=> (new CreditoModel())->saldoDisponivel((int)$agendamento['cliente_id']),
             'publicKey'   => $this->config['mercadopago']['public_key'] ?? '',
             'expirado'    => $this->reservaExpirada($agendamento),
         ]);
@@ -59,9 +61,17 @@ class CheckoutController extends BaseController {
             $this->redirect('/checkout/' . $codigo . '?metodo=pix');
         }
 
+        // Cobra o valor devido: total menos desconto, crédito interno e o que
+        // já foi pago (caso de reagendamento que aumentou o valor).
+        $valorDevido = $this->agendamentos->valorDevido($agendamento);
+
+        if ($valorDevido <= 0) {
+            $this->comErro('Não há valor a pagar nesta reserva.', '/checkout/' . $codigo);
+        }
+
         try {
             $retorno = GatewayFactory::obter()->criarPix([
-                'valor'          => (float)$agendamento['valor_total'],
+                'valor'          => $valorDevido,
                 'descricao'      => 'Agendamento ' . $agendamento['codigo_reserva'],
                 'codigo_reserva' => $agendamento['codigo_reserva'],
                 'email'          => $agendamento['cliente_email'],
@@ -76,9 +86,7 @@ class CheckoutController extends BaseController {
             );
         }
 
-        $this->pagamentos->registrar(
-            (int)$agendamento['id'], 'pix', (float)$agendamento['valor_total'], $retorno
-        );
+        $this->pagamentos->registrar((int)$agendamento['id'], 'pix', $valorDevido, $retorno);
 
         $this->redirect('/checkout/' . $codigo . '?metodo=pix');
     }
@@ -97,9 +105,15 @@ class CheckoutController extends BaseController {
             $this->comErro('Não foi possível validar os dados do cartão. Tente novamente.', '/checkout/' . $codigo);
         }
 
+        $valorDevido = $this->agendamentos->valorDevido($agendamento);
+
+        if ($valorDevido <= 0) {
+            $this->comErro('Não há valor a pagar nesta reserva.', '/checkout/' . $codigo);
+        }
+
         try {
             $retorno = GatewayFactory::obter()->criarCartao([
-                'valor'          => (float)$agendamento['valor_total'],
+                'valor'          => $valorDevido,
                 'descricao'      => 'Agendamento ' . $agendamento['codigo_reserva'],
                 'codigo_reserva' => $agendamento['codigo_reserva'],
                 'token'          => $token,
@@ -114,9 +128,7 @@ class CheckoutController extends BaseController {
             $this->comErro('Falha ao processar o cartão. Tente novamente.', '/checkout/' . $codigo);
         }
 
-        $this->pagamentos->registrar(
-            (int)$agendamento['id'], 'cartao_credito', (float)$agendamento['valor_total'], $retorno
-        );
+        $this->pagamentos->registrar((int)$agendamento['id'], 'cartao_credito', $valorDevido, $retorno);
 
         if ($retorno['status'] === 'aprovado') {
             $resultado = $this->pagamentos->aprovar($retorno['transacao_id']);

@@ -127,9 +127,20 @@ class AgendamentoController extends BaseController {
     public function apiHorarios(): void {
         $data = $this->get('data');
         $profissional = $this->get('profissional');
-        $wizard = $this->wizard();
 
-        if (empty($wizard['servicos'])) {
+        // Os serviços vêm da sessão (wizard) ou da query string (reagendamento,
+        // onde o cliente pode trocar a seleção sem reiniciar o fluxo).
+        $servicosInformados = array_filter(array_map('intval', (array)($_GET['servicos'] ?? [])));
+
+        if (!empty($servicosInformados)) {
+            $validos = array_map('intval', array_column($this->servicos->listarAtivos(), 'id'));
+            $servicosSelecionados = array_values(array_intersect($servicosInformados, $validos));
+        } else {
+            $wizard = $this->wizard();
+            $servicosSelecionados = $wizard['servicos'] ?? [];
+        }
+
+        if (empty($servicosSelecionados)) {
             $this->json(['erro' => 'Nenhum serviço selecionado.'], 400);
         }
 
@@ -143,7 +154,7 @@ class AgendamentoController extends BaseController {
 
         $horarios = $this->agendamentos->horariosDisponiveis(
             $data,
-            $wizard['servicos'],
+            $servicosSelecionados,
             $profissional !== '' ? (int)$profissional : null
         );
 

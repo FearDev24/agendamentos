@@ -564,3 +564,100 @@ textarea.campo-form {
   font-size: 12px;
   word-break: break-all;
 }
+
+/* ==========================================================================
+   Componentes - Fase 7 (Áreas do cliente e do profissional)
+   ========================================================================== */
+
+.insignia-fidelidade {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+/* Avaliação por estrelas: a ordem no HTML é 5→1 para que o seletor
+   irmão (~) consiga pintar as estrelas à esquerda da escolhida. */
+.estrelas {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.15rem;
+}
+
+.estrelas input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.estrelas label {
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-outline-variant);
+  cursor: pointer;
+  transition: color 0.12s ease;
+}
+
+.estrelas label:hover,
+.estrelas label:hover ~ label,
+.estrelas input:checked ~ label {
+  color: var(--color-primary);
+}
+
+.estrelas input:focus-visible + label {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Cartões de atendimento na agenda do profissional */
+.cartao-atendimento {
+  border-left: 3px solid var(--color-outline-variant);
+}
+
+.cartao-confirmado { border-left-color: var(--color-primary); }
+.cartao-concluido  { border-left-color: var(--color-success); }
+.cartao-falta      { border-left-color: var(--color-error); }
+.cartao-aguardando_pagamento { border-left-color: var(--color-outline); }
+
+/* Comprovante: impressão em papel branco, sem elementos de navegação */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header, footer.footer, .nao-imprimir, .style-sidebar {
+    display: none !important;
+  }
+
+  .comprovante {
+    background-color: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    color: #000000 !important;
+  }
+
+  .comprovante .text-gold,
+  .comprovante .text-muted-custom,
+  .comprovante .dado-numerico,
+  .comprovante dt,
+  .comprovante dd,
+  .comprovante td {
+    color: #000000 !important;
+  }
+
+  .comprovante .etiqueta {
+    border-color: #666666 !important;
+    color: #000000 !important;
+    background: none !important;
+  }
+
+  .comprovante .tabela-dados > :not(caption) > * > * {
+    color: #000000 !important;
+    border-bottom-color: #dddddd !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+}

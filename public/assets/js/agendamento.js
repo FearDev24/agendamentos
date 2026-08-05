@@ -96,6 +96,13 @@ function iniciarGradeDeHorarios() {
             profissional: campoProfissional.value
         });
 
+        // No reagendamento os serviços podem ser trocados na própria tela,
+        // então acompanham a consulta em vez de virem da sessão.
+        if (window.AGENDABARBER.formularioServicos) {
+            formulario.querySelectorAll('input[name="servicos[]"]:checked')
+                .forEach((caixa) => parametros.append('servicos[]', caixa.value));
+        }
+
         try {
             const resposta = await fetch(`${window.AGENDABARBER.urlHorarios}?${parametros}`, {
                 headers: { 'Accept': 'application/json' },
@@ -142,6 +149,13 @@ function iniciarGradeDeHorarios() {
 
     campoData.addEventListener('change', carregar);
     campoProfissional.addEventListener('change', carregar);
+
+    // Trocar os serviços muda a duração total e, portanto, a grade
+    if (window.AGENDABARBER.formularioServicos) {
+        formulario.querySelectorAll('input[name="servicos[]"]')
+            .forEach((caixa) => caixa.addEventListener('change', carregar));
+    }
+
     carregar();
 }
 

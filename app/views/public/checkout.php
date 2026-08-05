@@ -71,13 +71,57 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
                     <?php endforeach; ?>
                 </ul>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="h6 mb-0">Total</span>
-                    <strong class="text-gold dado-numerico fs-4">
+                <dl class="row mb-0">
+                    <dt class="col-7 text-muted-custom">Subtotal</dt>
+                    <dd class="col-5 text-end dado-numerico">
                         <?= FormatHelper::currency((float)$agendamento['valor_total']) ?>
-                    </strong>
-                </div>
+                    </dd>
+
+                    <?php if ((float)$agendamento['credito_utilizado'] > 0): ?>
+                        <dt class="col-7 text-muted-custom">Crédito interno aplicado</dt>
+                        <dd class="col-5 text-end dado-numerico text-success">
+                            − <?= FormatHelper::currency((float)$agendamento['credito_utilizado']) ?>
+                        </dd>
+                    <?php endif; ?>
+
+                    <?php $jaPago = (float)$agendamento['valor_total'] - (float)$agendamento['credito_utilizado'] - $valorDevido; ?>
+                    <?php if ($jaPago > 0.009): ?>
+                        <dt class="col-7 text-muted-custom">Já pago</dt>
+                        <dd class="col-5 text-end dado-numerico text-success">
+                            − <?= FormatHelper::currency($jaPago) ?>
+                        </dd>
+                    <?php endif; ?>
+
+                    <dt class="col-7 h6 mb-0">A pagar</dt>
+                    <dd class="col-5 text-end mb-0">
+                        <strong class="text-gold dado-numerico fs-4"><?= FormatHelper::currency($valorDevido) ?></strong>
+                    </dd>
+                </dl>
             </div>
+
+            <!-- Crédito interno disponível -->
+            <?php if ($aguardando && $saldoCredito > 0 && $valorDevido > 0): ?>
+                <div class="style-card p-4 mb-4">
+                    <h2 class="h6 text-gold mb-2">Usar Crédito Interno</h2>
+                    <p class="text-muted-custom mb-3">
+                        Você tem <strong class="text-gold"><?= FormatHelper::currency($saldoCredito) ?></strong> em créditos.
+                    </p>
+
+                    <form method="POST" action="<?= $baseUrl ?>/cliente/credito" class="row g-2 align-items-end">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                        <input type="hidden" name="codigo" value="<?= htmlspecialchars($agendamento['codigo_reserva'], ENT_QUOTES, 'UTF-8') ?>">
+
+                        <div class="col-sm-7">
+                            <label for="valor-credito" class="form-label label-caps text-muted-custom">VALOR A APLICAR</label>
+                            <input type="text" class="campo-form" id="valor-credito" name="valor" inputmode="decimal"
+                                   value="<?= number_format(min($saldoCredito, $valorDevido), 2, ',', '') ?>">
+                        </div>
+                        <div class="col-sm-5">
+                            <button type="submit" class="btn btn-outline-gold w-100">Aplicar Crédito</button>
+                        </div>
+                    </form>
+                </div>
+            <?php endif; ?>
 
             <?php if ($aguardando): ?>
                 <!-- Formas de pagamento -->
@@ -137,8 +181,8 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
 
                             <?php else: ?>
                                 <p class="text-muted-custom">
-                                    Gere o código Pix para pagar. O valor total é
-                                    <strong class="text-gold"><?= FormatHelper::currency((float)$agendamento['valor_total']) ?></strong>.
+                                    Gere o código Pix para pagar. O valor a pagar é
+                                    <strong class="text-gold"><?= FormatHelper::currency($valorDevido) ?></strong>.
                                 </p>
 
                                 <form method="POST" action="<?= $baseUrl ?>/checkout/<?= urlencode($agendamento['codigo_reserva']) ?>/pix">
@@ -179,7 +223,7 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
                                             <select class="campo-form" id="parcelas" name="parcelas">
                                                 <?php for ($i = 1; $i <= 6; $i++): ?>
                                                     <option value="<?= $i ?>">
-                                                        <?= $i ?>x de <?= FormatHelper::currency((float)$agendamento['valor_total'] / $i) ?>
+                                                        <?= $i ?>x de <?= FormatHelper::currency($valorDevido / $i) ?>
                                                     </option>
                                                 <?php endfor; ?>
                                             </select>
@@ -205,7 +249,7 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
                                             <select class="campo-form" id="parcelas" name="parcelas">
                                                 <?php for ($i = 1; $i <= 6; $i++): ?>
                                                     <option value="<?= $i ?>">
-                                                        <?= $i ?>x de <?= FormatHelper::currency((float)$agendamento['valor_total'] / $i) ?>
+                                                        <?= $i ?>x de <?= FormatHelper::currency($valorDevido / $i) ?>
                                                     </option>
                                                 <?php endfor; ?>
                                             </select>
@@ -214,7 +258,7 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
                                 <?php endif; ?>
 
                                 <button type="submit" class="btn btn-gold w-100 py-2">
-                                    Pagar <?= FormatHelper::currency((float)$agendamento['valor_total']) ?>
+                                    Pagar <?= FormatHelper::currency($valorDevido) ?>
                                 </button>
                             </form>
                         </div>

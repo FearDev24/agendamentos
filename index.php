@@ -87,9 +87,22 @@ $rotas = [
     'POST /perfil/email'       => [PerfilController::class, 'solicitarTrocaEmail'],
     'POST /perfil/excluir'     => [PerfilController::class, 'excluirConta'],
 
-    // Áreas restritas (o RBAC é validado dentro de cada Controller)
+    // Área do cliente
     'GET /cliente/agendamentos'  => [ClienteController::class, 'agendamentos'],
+    'GET /cliente/agendamento/{codigo}/comprovante' => [ClienteController::class, 'comprovante'],
+    'GET /cliente/agendamento/{codigo}/reagendar'   => [ClienteController::class, 'formReagendar'],
+    'POST /cliente/reagendar'    => [ClienteController::class, 'reagendar'],
+    'POST /cliente/cancelar'     => [ClienteController::class, 'cancelar'],
+    'POST /cliente/avaliar'      => [ClienteController::class, 'avaliar'],
+    'POST /cliente/credito'      => [ClienteController::class, 'aplicarCredito'],
+
+    // Área do profissional
     'GET /profissional/agenda'   => [ProfissionalController::class, 'agenda'],
+    'POST /profissional/presenca'=> [ProfissionalController::class, 'confirmarPresenca'],
+    'POST /profissional/concluir'=> [ProfissionalController::class, 'concluir'],
+    'POST /profissional/falta'   => [ProfissionalController::class, 'registrarFalta'],
+    'GET /profissional/cliente/{id}/notas' => [ProfissionalController::class, 'notasDoCliente'],
+    'POST /profissional/nota'    => [ProfissionalController::class, 'salvarNota'],
     'GET /admin/dashboard'       => [AdminController::class, 'dashboard'],
     'GET /admin/auditoria'       => [AdminController::class, 'auditoria'],
 
