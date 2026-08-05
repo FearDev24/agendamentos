@@ -17,6 +17,7 @@ spl_autoload_register(function (string $classe): void {
         __DIR__ . '/models/',
         __DIR__ . '/controllers/',
         __DIR__ . '/core/',
+        __DIR__ . '/gateways/',
     ];
 
     foreach ($diretorios as $diretorio) {

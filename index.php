@@ -57,7 +57,16 @@ $rotas = [
     'GET /agendar/revisao'     => [AgendamentoController::class, 'passoRevisao'],
     'POST /agendar/confirmar'  => [AgendamentoController::class, 'confirmar'],
     'GET /api/horarios'        => [AgendamentoController::class, 'apiHorarios'],
-    'GET /checkout/{codigo}'   => [AgendamentoController::class, 'checkout'],
+
+    // Checkout e pagamento
+    'GET /checkout/{codigo}'         => [CheckoutController::class, 'index'],
+    'POST /checkout/{codigo}/pix'    => [CheckoutController::class, 'gerarPix'],
+    'POST /checkout/{codigo}/cartao' => [CheckoutController::class, 'pagarCartao'],
+    'GET /checkout/{codigo}/status'  => [CheckoutController::class, 'status'],
+    'POST /checkout/{codigo}/simular'=> [CheckoutController::class, 'simularPagamento'],
+
+    // Webhook do gateway: rota pública, sem sessão nem CSRF (chamada servidor-a-servidor)
+    'POST /webhook/mercadopago'      => [WebhookController::class, 'mercadoPago'],
 
     // Autenticação
     'GET /login'               => [AuthController::class, 'formLogin'],

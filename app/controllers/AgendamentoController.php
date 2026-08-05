@@ -229,36 +229,6 @@ class AgendamentoController extends BaseController {
         );
     }
 
-    /**
-     * Tela de checkout provisória. O pagamento via Mercado Pago entra na Fase 6.
-     */
-    public function checkout(string $codigo = ''): void {
-        AuthHelper::requireAuth();
-
-        $codigo = $codigo !== '' ? $codigo : $this->get('codigo');
-        $agendamento = $this->agendamentos->buscarPorCodigo($codigo);
-
-        if ($agendamento === null) {
-            $this->comErro('Agendamento não encontrado.', '/cliente/agendamentos');
-        }
-
-        // Um cliente nunca pode abrir o checkout de outro
-        if ((int)$agendamento['cliente_id'] !== AuthHelper::id() && !AuthHelper::ehAdmin()) {
-            LogModel::seguranca(
-                LogModel::ACESSO_NEGADO_RBAC,
-                'Tentativa de acessar checkout de outro cliente: ' . $codigo,
-                AuthHelper::id()
-            );
-            AuthHelper::negarAcesso();
-        }
-
-        $this->render('public/checkout', [
-            'pageTitle'   => 'Pagamento',
-            'agendamento' => $agendamento,
-            'servicos'    => $this->agendamentos->servicosDoAgendamento((int)$agendamento['id']),
-        ]);
-    }
-
     // =================================================================
     // Auxiliares
     // =================================================================

@@ -19,6 +19,20 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-05 - Cartão aprovado não confirmava o agendamento
+
+- Sintoma: No pagamento com cartão aprovado na hora, o agendamento permanecia em `aguardando_pagamento`, apesar de o pagamento constar como aprovado.
+- Causa: `PagamentoModel::registrar()` grava o status devolvido pelo gateway, então o cartão aprovado já nascia com `status_pagamento = 'aprovado'`. Logo depois, `aprovar()` verificava a idempotência olhando o **pagamento**, encontrava-o já aprovado e retornava `ja_processado` sem nunca confirmar o agendamento. O Pix não sofria disso porque nasce pendente.
+- Solução aplicada: A idempotência passou a ser decidida pelo estado do **agendamento**, não do pagamento. Se o agendamento já está `confirmado`, devolve `ja_processado`; se está `aguardando_pagamento`, confirma — independentemente de o pagamento já ter nascido aprovado.
+- Como evitar no futuro: Em fluxos idempotentes, ancorar a verificação no estado que a operação pretende alcançar (o agendamento confirmado), e não em um efeito colateral intermediário.
+
+## 2026-08-05 - `recusar()` devolvia falso para cartão negado na hora
+
+- Sintoma: `PagamentoModel::recusar()` retornava `false` quando o cartão já vinha recusado do gateway.
+- Causa: O método só atualizava linhas com status `pendente` e devolvia o `rowCount()`. Como o registro já nascia `recusado`, nada era alterado e o retorno era falso, sugerindo falha onde não havia.
+- Solução aplicada: O método passou a garantir o estado final e devolver `true` sempre que a transação termina recusada, mantendo a regra de nunca rebaixar um pagamento já aprovado.
+- Como evitar no futuro: Métodos de transição de estado devem reportar o **estado alcançado**, não a quantidade de linhas alteradas.
+
 ## 2026-08-04 - Retorno pós-login perdia o fluxo de agendamento
 
 - Sintoma: O cliente não logado que preenchia todo o wizard e clicava em "Ir para Pagamento" era levado ao login e, após autenticar, caía em `/cliente/agendamentos` em vez de voltar à revisão do agendamento.

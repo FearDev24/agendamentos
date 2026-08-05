@@ -38,6 +38,9 @@ return [
     'mercadopago' => [
         'access_token' => 'SEU_ACCESS_TOKEN_AQUI',
         'public_key' => 'SUA_PUBLIC_KEY_AQUI',
+        // Segredo da assinatura do webhook (painel do Mercado Pago > Webhooks).
+        // Obrigatório em produção: sem ele o webhook recusa toda notificação.
+        'webhook_secret' => 'SEU_WEBHOOK_SECRET_AQUI',
         'sandbox_mode' => true // true para testes locais simulados no XAMPP
     ]
 ];

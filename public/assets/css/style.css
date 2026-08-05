@@ -519,3 +519,48 @@ textarea.campo-form {
   border-color: var(--color-tertiary);
   color: var(--color-tertiary);
 }
+
+/* ==========================================================================
+   Componentes - Fase 6 (Checkout e pagamento)
+   ========================================================================== */
+
+/* Abas Pix / Cartão */
+.abas-pagamento {
+  border-bottom-color: var(--color-outline-variant);
+}
+
+.abas-pagamento .nav-link {
+  color: var(--color-on-surface-variant);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+  font-weight: 600;
+}
+
+.abas-pagamento .nav-link:hover {
+  color: var(--color-primary);
+  border-color: transparent;
+}
+
+.abas-pagamento .nav-link.active {
+  color: var(--color-primary);
+  background-color: var(--color-surface-low);
+  border-color: var(--color-outline-variant) var(--color-outline-variant) transparent;
+}
+
+/* QR Code do Pix sobre fundo claro, para garantir a leitura pelo app */
+.qr-code-pix {
+  width: 220px;
+  height: 220px;
+  max-width: 100%;
+  padding: 12px;
+  background-color: #ffffff;
+  border-radius: 4px;
+}
+
+/* Código Copia e Cola: fonte monoespaçada e quebra em qualquer ponto */
+#codigo-pix {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  word-break: break-all;
+}

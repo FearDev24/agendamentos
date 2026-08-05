@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
-**Última atualização**: 04/08/2026  
-**Estado Atual**: Fase 5 (Motor de Disponibilidade e Agendamento Público) Concluída. Vitrine pública, wizard de agendamento em 3 passos, cálculo de horários livres em tempo real e reserva temporária de 10 minutos. Baterias de teste: 111 (Fase 2) + 149 (Fase 3) + 128 (Fase 4) + 153 (Fase 5) = **541 testes passando**.
+**Última atualização**: 05/08/2026  
+**Estado Atual**: Fase 6 (Gateway de Pagamentos, Webhooks e Retenção) Concluída. Checkout com Pix (QR Code e Copia e Cola) e Cartão de Crédito, simulador local de pagamentos, webhook idempotente e confirmação automática do agendamento. Baterias de teste: 111 + 149 + 128 + 153 + 132 = **673 testes passando**.
 
 ---
 
@@ -12,7 +12,7 @@
 - [x] **Fase 3 - Módulo de Autenticação, Sessões e Controle de Acesso (RBAC)** *(Concluída em 04/08/2026)*
 - [x] **Fase 4 - Cadastros Administrativos Base (Serviços, Profissionais e Bloqueios)** *(Concluída em 04/08/2026)*
 - [x] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público** *(Concluída em 04/08/2026)*
-- [ ] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária**
+- [x] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária** *(Concluída em 05/08/2026)*
 - [ ] **Fase 7 - Áreas Restritas do Cliente e do Profissional**
 - [ ] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
 - [ ] **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
@@ -21,9 +21,56 @@
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público
-- **Fase Pendente**: **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária**
-- **Próximo Passo Recomendado**: Integrar o SDK do Mercado Pago (Pix QR Code e Cartão), criar a classe simuladora Sandbox para testes locais e o `WebhookController.php` idempotente que confirma o agendamento no retorno do pagamento.
+- **Fase Concluída**: Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária
+- **Fase Pendente**: **Fase 7 - Áreas Restritas do Cliente e do Profissional**
+- **Próximo Passo Recomendado**: Desenvolver o painel "Meus Agendamentos" (comprovante, reagendamento com regra de 24h e geração de crédito interno, cancelamento), as insígnias de fidelidade, as avaliações de 1 a 5 estrelas e o painel do profissional.
+
+---
+
+## Entregas da Fase 6 (05/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `app/gateways/GatewayPagamento.php` | Contrato do provedor de pagamentos |
+| `app/gateways/SandboxGateway.php` | Simulador local, sem chamadas externas |
+| `app/gateways/MercadoPagoGateway.php` | API REST v1 por cURL, sem SDK externo |
+| `app/gateways/GatewayFactory.php` | Escolhe o provedor conforme `sandbox_mode` |
+| `app/models/PagamentoModel.php` | Transações e confirmação idempotente |
+| `app/controllers/CheckoutController.php` | Pix, cartão, polling de status e simulação |
+| `app/controllers/WebhookController.php` | Notificações do gateway |
+| `public/assets/js/checkout.js` | Cronômetro, cópia do Pix, polling e tokenização |
+| `tests/teste_fase6.php` | 132 testes de validação da Fase 6 |
+
+### Rotas adicionadas
+`/checkout/{codigo}` · `/checkout/{codigo}/pix` · `/checkout/{codigo}/cartao` · `/checkout/{codigo}/status` · `/checkout/{codigo}/simular` (só em sandbox) · `/webhook/mercadopago`
+
+### Segurança do fluxo de pagamento
+- O status **nunca** vem do corpo do webhook: é reconsultado na API do provedor, de modo que forjar um POST não confirma agendamento;
+- Assinatura `x-signature` validada por HMAC-SHA256; sem `webhook_secret` configurado, toda notificação é recusada;
+- Confirmação idempotente, decidida pelo estado do agendamento (o Mercado Pago reenvia a mesma notificação até receber 200);
+- Dados do cartão tokenizados no navegador: número, CVV e validade nunca chegam ao servidor nem ao banco;
+- Chave de idempotência enviada ao Mercado Pago, evitando cobrança duplicada por reenvio de requisição;
+- Um cliente não acessa o checkout de outro (403 + registro em `security_logs`).
+
+### Como testar o pagamento localmente
+Com `'sandbox_mode' => true`, nenhum pagamento real é processado. Na tela de checkout:
+1. **Pix**: clique em "Gerar QR Code Pix" e depois em "Simular Pagamento Aprovado";
+2. **Cartão**: escolha o resultado desejado (aprovado, recusado ou em análise) e envie.
+
+### Antes de ir para produção
+1. Preencher `access_token`, `public_key` e `webhook_secret` em `config/config.php`;
+2. Trocar `'sandbox_mode'` para `false`;
+3. Cadastrar a URL `https://SEU-DOMINIO/webhook/mercadopago` no painel do Mercado Pago;
+4. Inicializar o SDK JS do Mercado Pago no checkout para a tokenização real do cartão (ver pendência abaixo).
+
+### Pendência conhecida
+A tokenização real do cartão exige o SDK JavaScript do Mercado Pago, que **precisa** ser carregado do domínio deles — não pode ser hospedado localmente. Isso conflita com a regra do `docs/FSD.md` seção 3 de não depender de CDN. É a única exceção necessária, e vale apenas para a aba de cartão em produção; Pix e todo o restante do sistema seguem 100% locais.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase6.php
+```
 
 ---
 
