@@ -79,6 +79,15 @@ $hoje = date('Y-m-d');
                     $confirmado = $a['situacao'] === 'confirmado';
                     $concluido  = $a['situacao'] === 'concluido';
                     $inicioSugerido = substr($a['hora_inicio_real'] ?? $a['hora_inicio'], 0, 5);
+
+                    // O término sugerido só pode ser o relógio atual quando o
+                    // atendimento é hoje e já começou. Caso contrário, sugerir
+                    // "agora" produziria um horário anterior ao início.
+                    $agora = date('H:i');
+                    $ehHoje = $a['data_agendamento'] === $hoje;
+                    $fimSugerido = ($ehHoje && $agora > $inicioSugerido)
+                        ? $agora
+                        : substr($a['hora_fim'], 0, 5);
                     ?>
                     <article class="style-card p-4 mb-3 cartao-atendimento cartao-<?= htmlspecialchars($a['situacao'], ENT_QUOTES, 'UTF-8') ?>">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -169,7 +178,7 @@ $hoje = date('Y-m-d');
                                         <div class="col-sm-4">
                                             <label for="fim-<?= (int)$a['id'] ?>" class="form-label label-caps text-muted-custom">TÉRMINO REAL</label>
                                             <input type="time" class="campo-form" id="fim-<?= (int)$a['id'] ?>"
-                                                   name="hora_fim_real" value="<?= date('H:i') ?>">
+                                                   name="hora_fim_real" value="<?= $fimSugerido ?>">
                                         </div>
                                         <div class="col-sm-4">
                                             <button type="submit" class="btn btn-gold w-100">Concluir</button>

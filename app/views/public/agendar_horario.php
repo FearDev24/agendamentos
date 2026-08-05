@@ -82,4 +82,4 @@
         urlHorarios: '<?= $baseUrl ?>/api/horarios'
     };
 </script>
-<script src="<?= $baseUrl ?>/public/assets/js/agendamento.js"></script>
+<script src="<?= FormatHelper::asset('assets/js/agendamento.js') ?>"></script>

@@ -20,4 +20,24 @@ class FormatHelper {
     public static function escape(?string $string): string {
         return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
     }
+
+    /**
+     * URL de um arquivo estático com versão baseada na data de modificação.
+     *
+     * Sem isso o navegador continua servindo CSS e JS antigos do cache depois
+     * de uma atualização, e o usuário vê a interface quebrada até limpar o
+     * cache manualmente.
+     *
+     * @param string $caminho Caminho relativo a partir de `public/`,
+     *                        ex: 'assets/js/main.js'
+     */
+    public static function asset(string $caminho): string {
+        $baseUrl = $GLOBALS['config']['app']['url'] ?? '';
+        $caminho = ltrim($caminho, '/');
+        $arquivo = __DIR__ . '/../../public/' . $caminho;
+
+        $versao = is_file($arquivo) ? filemtime($arquivo) : time();
+
+        return $baseUrl . '/public/' . $caminho . '?v=' . $versao;
+    }
 }

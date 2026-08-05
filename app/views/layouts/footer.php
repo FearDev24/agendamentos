@@ -18,8 +18,8 @@ $baseUrl = $config['app']['url'] ?? '';
 </footer>
 
 <!-- Bootstrap 5 JS Local -->
-<script src="<?= $baseUrl ?>/public/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="<?= FormatHelper::asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 <!-- Script JS Vanilla Principal -->
-<script src="<?= $baseUrl ?>/public/assets/js/main.js"></script>
+<script src="<?= FormatHelper::asset('assets/js/main.js') ?>"></script>
 </body>
 </html>

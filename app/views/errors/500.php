@@ -8,8 +8,8 @@ $baseUrl = $GLOBALS['config']['app']['url'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Erro Interno</title>
-    <link rel="stylesheet" href="<?= $baseUrl ?>/public/assets/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="<?= $baseUrl ?>/public/assets/css/style.css">
+    <link rel="stylesheet" href="<?= FormatHelper::asset('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= FormatHelper::asset('assets/css/style.css') ?>">
 </head>
 <body class="bg-surface text-on-surface">
 <main class="container py-5 text-center">

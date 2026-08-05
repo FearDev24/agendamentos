@@ -284,4 +284,4 @@ $temPix = $pagamento !== null && $pagamento['forma_pagamento'] === 'pix' && !emp
         sandbox: <?= $emSandbox ? 'true' : 'false' ?>
     };
 </script>
-<script src="<?= $baseUrl ?>/public/assets/js/checkout.js"></script>
+<script src="<?= FormatHelper::asset('assets/js/checkout.js') ?>"></script>

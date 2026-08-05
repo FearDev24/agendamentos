@@ -13,9 +13,9 @@ $csrf = SessionHelper::generateCsrfToken();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? $appName, ENT_QUOTES, 'UTF-8') ?></title>
     <!-- Bootstrap 5 CSS Local -->
-    <link rel="stylesheet" href="<?= $baseUrl ?>/public/assets/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?= FormatHelper::asset('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
     <!-- Estilos Globais do Design System (Elevated Grooming & Wellness) -->
-    <link rel="stylesheet" href="<?= $baseUrl ?>/public/assets/css/style.css">
+    <link rel="stylesheet" href="<?= FormatHelper::asset('assets/css/style.css') ?>">
 </head>
 <body class="bg-surface text-on-surface d-flex flex-column min-vh-100">
 <header class="navbar navbar-expand-lg border-bottom border-secondary-dark bg-surface-container py-3">

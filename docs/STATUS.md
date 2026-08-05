@@ -1,7 +1,9 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 111 + 149 + 128 + 153 + 132 + 154 = **827 testes passando**.
+**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 69 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 = **896 testes passando**.
+
+> **Correção crítica em 05/08/2026**: o `bootstrap.bundle.min.js` era um placeholder de 175 bytes desde a Fase 1, deixando inertes todos os botões dependentes de Bootstrap (cancelar, concluir atendimento, abas do checkout, menu mobile). Instalado o Bootstrap 5.3.3 real, criado o versionamento de assets contra cache e adicionada a bateria `tests/teste_frontend.php`. Detalhes em [ERROS.md](ERROS.md).
 
 ---
 

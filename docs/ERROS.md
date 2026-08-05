@@ -19,6 +19,25 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-05 - Bootstrap JS era um stub: nenhum botão interativo funcionava
+
+- Sintoma: Clicar em "Cancelar" no painel do cliente não abria o formulário de cancelamento. O mesmo ocorria com "Concluir Atendimento" na agenda do profissional, com as abas Pix/Cartão do checkout e com o menu de navegação no celular.
+- Causa: O arquivo `public/assets/vendor/bootstrap/js/bootstrap.bundle.min.js` criado na Fase 1 era um **placeholder de 175 bytes** que apenas escrevia no console. O Bootstrap CSS era real (232 KB), então as telas *pareciam* corretas, mas `window.bootstrap` ficava indefinido e todo componente JS (collapse, tab, modal, dropdown) era inerte.
+- Por que passou despercebido por seis fases: as baterias de teste validavam o HTML devolvido pelo servidor. Elas confirmavam que o botão existia na página, jamais que ele **funcionava** ao ser clicado.
+- Solução aplicada:
+  1. Instalado o Bootstrap 5.3.3 real (80 KB);
+  2. Criado `FormatHelper::asset()`, que acrescenta `?v=<filemtime>` a todo CSS/JS — sem isso o navegador continuava servindo o arquivo antigo do cache mesmo após a correção;
+  3. Criada a bateria `tests/teste_frontend.php`, que verifica se os pacotes de terceiros são reais (tamanho, componentes esperados, ausência da palavra "stub"), se todo asset referenciado responde 200 com conteúdo e se nenhuma View depende de CDN externa;
+  4. Verificado no navegador, com cliques reais, cada interação dependente de JavaScript.
+- Como evitar no futuro: `tests/teste_frontend.php` roda junto com as demais baterias. A regressão foi confirmada de propósito: ao restaurar o stub, 6 testes falham; com o arquivo real, todos passam.
+
+## 2026-08-05 - Término sugerido anterior ao início ao concluir atendimento
+
+- Sintoma: Na agenda do profissional, abrir "Concluir Atendimento" de um atendimento que não fosse do horário corrente preenchia o campo "término real" com a hora atual do relógio, resultando em um horário **anterior** ao início. Concluir aceitando o padrão era recusado com "o horário de término deve ser posterior ao de início".
+- Causa: O campo usava `date('H:i')` incondicionalmente.
+- Solução aplicada: O término sugerido passou a ser o relógio atual apenas quando o atendimento é do dia e já começou; caso contrário, sugere o horário de término previsto do agendamento.
+- Como evitar no futuro: Valores padrão de formulário derivados do relógio precisam ser coerentes com o registro exibido, não com o instante da renderização.
+
 ## 2026-08-05 - Cartão aprovado não confirmava o agendamento
 
 - Sintoma: No pagamento com cartão aprovado na hora, o agendamento permanecia em `aguardando_pagamento`, apesar de o pagamento constar como aprovado.
