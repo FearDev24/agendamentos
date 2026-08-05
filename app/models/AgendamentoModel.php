@@ -22,6 +22,12 @@ class AgendamentoModel extends BaseModel {
     /** Situações que efetivamente ocupam um horário na agenda */
     public const SITUACOES_ATIVAS = ['aguardando_pagamento', 'confirmado'];
 
+    /** Todas as situações previstas no ENUM da tabela `agendamentos` */
+    public const SITUACOES_TODAS = [
+        'aguardando_pagamento', 'confirmado', 'concluido',
+        'cancelado', 'falta', 'reembolsado',
+    ];
+
     private SettingModel $settings;
 
     public function __construct() {
@@ -245,6 +251,117 @@ class AgendamentoModel extends BaseModel {
             }
             throw $e;
         }
+    }
+
+    /**
+     * Agendamento criado pelo balcão (docs/FSD.md Módulo 7).
+     *
+     * Nasce já `confirmado`: o pagamento é tratado presencialmente. Admite
+     * desconto fixo ou percentual, sempre com justificativa, que fica na
+     * trilha de auditoria.
+     *
+     * @param array $desconto ['tipo' => 'fixo'|'percentual', 'valor' => float, 'justificativa' => string]
+     */
+    public function criarManual(
+        int $clienteId, int $profissionalId, string $data, string $hora,
+        array $servicoIds, array $desconto = []
+    ): array {
+        $servicos = $this->carregarServicos($servicoIds);
+
+        if (empty($servicos)) {
+            throw new RuntimeException('Selecione ao menos um serviço válido.');
+        }
+
+        if (!$this->horarioEstaLivre($data, $hora, $servicoIds, $profissionalId)) {
+            throw new RuntimeException('Este horário não está disponível para o profissional escolhido.');
+        }
+
+        $duracaoTotal = array_sum(array_column($servicos, 'duracao_minutos'));
+        $valorBruto = round((float)array_sum(array_column($servicos, 'preco')), 2);
+
+        $valorDesconto = 0.0;
+
+        if (!empty($desconto['valor']) && (float)$desconto['valor'] > 0) {
+            if (mb_strlen(trim($desconto['justificativa'] ?? '')) < 3) {
+                throw new RuntimeException('Descontos exigem uma justificativa.');
+            }
+
+            $valorDesconto = ($desconto['tipo'] ?? 'fixo') === 'percentual'
+                ? $valorBruto * ((float)$desconto['valor'] / 100)
+                : (float)$desconto['valor'];
+
+            $valorDesconto = round(min($valorDesconto, $valorBruto), 2);
+        }
+
+        $inicio = $this->paraMinutos($hora);
+        $horaFim = $this->paraHora($inicio + $duracaoTotal);
+
+        $this->db->beginTransaction();
+
+        try {
+            $codigo = $this->gerarCodigoReserva();
+
+            $this->consultar(
+                "INSERT INTO agendamentos
+                    (codigo_reserva, cliente_id, profissional_id, data_agendamento, hora_inicio, hora_fim,
+                     duracao_total_minutos, valor_total, valor_desconto, justificativa_desconto, situacao)
+                 VALUES
+                    (:codigo, :cliente, :profissional, :data, :inicio, :fim,
+                     :duracao, :valor, :desconto, :justificativa, 'confirmado')",
+                [
+                    ':codigo'        => $codigo,
+                    ':cliente'       => $clienteId,
+                    ':profissional'  => $profissionalId,
+                    ':data'          => $data,
+                    ':inicio'        => substr($hora, 0, 5) . ':00',
+                    ':fim'           => $horaFim . ':00',
+                    ':duracao'       => $duracaoTotal,
+                    ':valor'         => $valorBruto,
+                    ':desconto'      => $valorDesconto,
+                    ':justificativa' => $valorDesconto > 0 ? trim($desconto['justificativa']) : null,
+                ]
+            );
+
+            $id = (int)$this->db->lastInsertId();
+
+            $stmt = $this->db->prepare(
+                'INSERT INTO agendamento_servicos (agendamento_id, servico_id, preco_aplicado, duracao_aplicada_minutos)
+                 VALUES (:agendamento, :servico, :preco, :duracao)'
+            );
+
+            foreach ($servicos as $servico) {
+                $stmt->execute([
+                    ':agendamento' => $id,
+                    ':servico'     => (int)$servico['id'],
+                    ':preco'       => $servico['preco'],
+                    ':duracao'     => (int)$servico['duracao_minutos'],
+                ]);
+            }
+
+            $this->db->commit();
+
+            return [
+                'codigo'         => $codigo,
+                'id'             => $id,
+                'valor_bruto'    => $valorBruto,
+                'valor_desconto' => $valorDesconto,
+                'valor_final'    => round($valorBruto - $valorDesconto, 2),
+            ];
+
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Cancelamento feito pelo estabelecimento: sempre com direito a reembolso,
+     * independentemente da antecedência (docs/FSD.md Módulo 7).
+     */
+    public function cancelarPeloEstabelecimento(int $agendamentoId, string $motivo): array {
+        return $this->cancelar($agendamentoId, 0, $motivo, true);
     }
 
     /**

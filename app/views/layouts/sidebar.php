@@ -13,12 +13,15 @@ $itens = [];
 if (in_array($userRole, AuthHelper::PERFIS_ADMIN, true)) {
     $itens[] = ['/admin/dashboard', 'Dashboard'];
     $itens[] = ['/admin/agenda', 'Agenda Global'];
-    $itens[] = ['/admin/servicos', 'Serviços'];
-    $itens[] = ['/admin/profissionais', 'Profissionais'];
-    $itens[] = ['/admin/financeiro', 'Financeiro'];
+    $itens[] = ['/admin/bloqueios', 'Bloqueios'];
+    $itens[] = ['/admin/promocoes', 'Promoções'];
 
-    // Auditoria é exclusiva do Administrador Principal
+    // Cadastros, finanças e auditoria são exclusivos do Administrador Principal
     if ($userRole === 'admin_principal') {
+        $itens[] = ['/admin/servicos', 'Serviços'];
+        $itens[] = ['/admin/profissionais', 'Profissionais'];
+        $itens[] = ['/admin/financeiro', 'Financeiro'];
+        $itens[] = ['/admin/relatorios', 'Relatórios'];
         $itens[] = ['/admin/auditoria', 'Auditoria'];
     }
 } elseif ($userRole === 'profissional') {

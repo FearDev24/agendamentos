@@ -15,10 +15,14 @@ class HomeController extends BaseController {
         $profissionais = new ProfissionalModel();
         $settings = new SettingModel();
 
+        $promocoes = new PromocaoModel();
+        $promocoes->expirarVencidas();
+
         $this->render('public/home', [
             'pageTitle'     => 'Início',
             'servicos'      => $servicos->listarAtivos(),
             'profissionais' => $profissionais->listar('', 'ativo'),
+            'promocoes'     => $promocoes->vigentes(),
             // Chave 'ajustes' (e não 'config') para não colidir com a
             // configuração técnica da aplicação já presente nas Views
             'ajustes'       => $settings->todos(),

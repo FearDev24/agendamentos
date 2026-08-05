@@ -127,6 +127,28 @@ $rotas = [
     'GET /admin/bloqueios'          => [AdminController::class, 'bloqueios'],
     'POST /admin/bloqueios/salvar'  => [AdminController::class, 'salvarBloqueio'],
     'POST /admin/bloqueios/excluir' => [AdminController::class, 'excluirBloqueio'],
+
+    // Agenda administrativa (ambos os perfis administrativos)
+    'GET /admin/agenda'             => [AdminController::class, 'agenda'],
+    'POST /admin/agenda/manual'     => [AdminController::class, 'agendarManualmente'],
+    'POST /admin/agenda/cancelar'   => [AdminController::class, 'cancelarAgendamento'],
+
+    // Financeiro e relatórios (exclusivo do Administrador Principal)
+    'GET /admin/financeiro'                => [FinanceiroController::class, 'index'],
+    'POST /admin/financeiro/despesa'       => [FinanceiroController::class, 'salvarDespesa'],
+    'POST /admin/financeiro/despesa/excluir' => [FinanceiroController::class, 'excluirDespesa'],
+    'POST /admin/financeiro/categoria'     => [FinanceiroController::class, 'salvarCategoria'],
+    'GET /admin/financeiro/exportar'       => [FinanceiroController::class, 'exportarFinanceiro'],
+    'GET /admin/relatorios'                => [FinanceiroController::class, 'relatorios'],
+    'GET /admin/relatorios/exportar'       => [FinanceiroController::class, 'exportar'],
+
+    // Promoções (ambos os perfis administrativos)
+    'GET /admin/promocoes'          => [PromocaoController::class, 'index'],
+    'POST /admin/promocoes/salvar'  => [PromocaoController::class, 'salvar'],
+    'POST /admin/promocoes/excluir' => [PromocaoController::class, 'excluir'],
+
+    // Página pública de compartilhamento da promoção
+    'GET /promocao/{id}'            => [PromocaoController::class, 'publica'],
 ];
 
 // -----------------------------------------------------------------

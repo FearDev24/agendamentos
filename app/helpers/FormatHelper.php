@@ -22,6 +22,37 @@ class FormatHelper {
     }
 
     /**
+     * Mês e ano por extenso, ex: "agosto de 2026".
+     *
+     * Escrito à mão porque `strftime()` depende do locale do sistema e no
+     * Windows não devolve português de forma confiável.
+     */
+    public static function mesAnoBr(string $data): string {
+        $meses = [
+            1 => 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+        ];
+
+        $timestamp = strtotime($data);
+
+        if ($timestamp === false) {
+            return '';
+        }
+
+        return $meses[(int)date('n', $timestamp)] . ' de ' . date('Y', $timestamp);
+    }
+
+    /**
+     * Nome abreviado do dia da semana, ex: "Seg".
+     */
+    public static function diaSemanaBr(string $data): string {
+        $dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        $timestamp = strtotime($data);
+
+        return $timestamp === false ? '' : $dias[(int)date('w', $timestamp)];
+    }
+
+    /**
      * URL de um arquivo estático com versão baseada na data de modificação.
      *
      * Sem isso o navegador continua servindo CSS e JS antigos do cache depois

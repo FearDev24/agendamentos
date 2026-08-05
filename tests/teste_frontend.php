@@ -228,19 +228,45 @@ $t->verificar('Todo data-bs-target aponta para um elemento existente',
 // =====================================================================
 $t->grupo('7. Ausência de dependência de CDN externa');
 
-// Regra do docs/FSD.md seção 3: nada pode vir de fora do repositório
+// Regra do docs/FSD.md seção 3: nenhum RECURSO pode ser carregado de fora.
+// Links de navegação para sites externos (compartilhar no WhatsApp, abrir o
+// mapa) são permitidos — o navegador não busca nada por conta deles.
 $viewsComCdn = [];
 
 foreach (glob(__DIR__ . '/../app/views/**/*.php') as $view) {
     $conteudo = file_get_contents($view);
 
-    if (preg_match('#(src|href)="https?://(?!localhost)#i', $conteudo, $m)) {
+    // <script src>, <img src>, <iframe src> e <link rel=stylesheet href>
+    $carregaExterno = preg_match('#<(script|img|iframe)[^>]+src="https?://(?!localhost)#i', $conteudo)
+        || preg_match('#<link[^>]+href="https?://(?!localhost)#i', $conteudo);
+
+    if ($carregaExterno) {
         $viewsComCdn[] = basename($view);
     }
 }
 
 $t->verificar('Nenhuma View carrega recurso de domínio externo',
     empty($viewsComCdn), implode(', ', $viewsComCdn));
+
+// Links de saída são aceitáveis, mas precisam de rel="noopener" por segurança:
+// sem ele a página aberta ganha acesso a `window.opener`.
+$semNoopener = [];
+
+foreach (glob(__DIR__ . '/../app/views/**/*.php') as $view) {
+    $conteudo = file_get_contents($view);
+
+    if (preg_match_all('#<a[^>]+target="_blank"[^>]*>#i', $conteudo, $ancoras)) {
+        foreach ($ancoras[0] as $ancora) {
+            if (stripos($ancora, 'noopener') === false) {
+                $semNoopener[] = basename($view);
+                break;
+            }
+        }
+    }
+}
+
+$t->verificar('Todo link que abre em nova aba usa rel="noopener"',
+    empty($semNoopener), implode(', ', $semNoopener));
 
 // =====================================================================
 $t->grupo('8. Aplicativo instalável (PWA)');
@@ -395,6 +421,93 @@ foreach (glob($raizPublica . 'assets/img/fidelidade/*.png') as $img) { $totalIma
 
 $t->verificar('Conjunto de imagens da interface abaixo de 1 MB',
     $totalImagens < 1048576, round($totalImagens / 1024, 1) . ' KB');
+
+// =====================================================================
+$t->grupo('10. Nenhuma tela contém erro de PHP');
+
+/**
+ * Um erro fatal de PHP é servido com HTTP 200 quando `display_errors` está
+ * ligado. Conferir só o código de status deixa passar tela quebrada — foi o
+ * que aconteceu na Fase 8, em que a Agenda Global respondia 200 exibindo
+ * apenas a mensagem de erro. Esta varredura abre cada tela com o perfil
+ * adequado e falha se encontrar qualquer aviso do PHP.
+ */
+const SENHA_VARREDURA = 'SenhaVarredura@123';
+const PREFIXO_VARREDURA = 'varredura_front_';
+
+$pdo = Database::getConnection();
+
+$limparVarredura = function () use ($pdo) {
+    $prefixo = PREFIXO_VARREDURA . '%';
+    $pdo->prepare("DELETE FROM security_logs WHERE usuario_id IN (SELECT id FROM usuarios WHERE email LIKE ?)")
+        ->execute([$prefixo]);
+    $pdo->prepare("DELETE FROM audit_logs WHERE usuario_id IN (SELECT id FROM usuarios WHERE email LIKE ?)")
+        ->execute([$prefixo]);
+    $pdo->prepare("DELETE FROM profissionais WHERE usuario_id IN (SELECT id FROM usuarios WHERE email LIKE ?)")
+        ->execute([$prefixo]);
+    $pdo->prepare("DELETE FROM usuarios WHERE email LIKE ?")->execute([$prefixo]);
+};
+
+$limparVarredura();
+
+$usuarios = new UsuarioModel();
+
+$contas = [
+    'admin_principal' => PREFIXO_VARREDURA . 'principal@local.test',
+    'admin_limitado'  => PREFIXO_VARREDURA . 'limitado@local.test',
+    'cliente'         => PREFIXO_VARREDURA . 'cliente@local.test',
+];
+
+foreach ($contas as $perfil => $email) {
+    $usuarios->criar([
+        'nome' => 'Varredura ' . $perfil, 'email' => $email,
+        'telefone' => '(11) 90000-0000', 'senha' => SENHA_VARREDURA, 'perfil' => $perfil,
+    ]);
+}
+
+/** Telas acessíveis a cada perfil */
+$telasPorPerfil = [
+    'admin_principal' => [
+        '/admin/dashboard', '/admin/agenda', '/admin/agenda?visao=semana',
+        '/admin/agenda?visao=mes', '/admin/bloqueios', '/admin/servicos',
+        '/admin/profissionais', '/admin/financeiro', '/admin/relatorios',
+        '/admin/promocoes', '/admin/auditoria', '/perfil',
+    ],
+    'admin_limitado' => [
+        '/admin/dashboard', '/admin/agenda', '/admin/bloqueios', '/admin/promocoes', '/perfil',
+    ],
+    'cliente' => [
+        '/cliente/agendamentos', '/perfil', '/agendar',
+    ],
+];
+
+foreach ($telasPorPerfil as $perfil => $telas) {
+    $cliente = new HttpClient($baseUrl);
+    $csrf = $cliente->csrfDe('/login');
+    $cliente->post('/login', ['csrf_token' => $csrf, 'email' => $contas[$perfil], 'senha' => SENHA_VARREDURA]);
+
+    foreach ($telas as $tela) {
+        $erro = $cliente->conferirPagina($tela);
+
+        $t->verificar("[{$perfil}] {$tela} sem erro de PHP", $erro === null, (string)$erro);
+        $t->verificar("[{$perfil}] {$tela} devolve conteúdo",
+            $cliente->ultimoStatus === 200 && strlen($cliente->ultimoCorpo) > 1500,
+            'HTTP ' . $cliente->ultimoStatus . ', ' . strlen($cliente->ultimoCorpo) . ' bytes');
+    }
+
+    $cliente->encerrar();
+}
+
+// Telas públicas
+$publico = new HttpClient($baseUrl);
+
+foreach (['/', '/login', '/cadastro', '/recuperar-senha', '/agendar', '/rota-inexistente'] as $tela) {
+    $erro = $publico->conferirPagina($tela);
+    $t->verificar("[público] {$tela} sem erro de PHP", $erro === null, (string)$erro);
+}
+
+$publico->encerrar();
+$limparVarredura();
 
 // =====================================================================
 $http->encerrar();

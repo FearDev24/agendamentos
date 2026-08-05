@@ -621,6 +621,188 @@ textarea.campo-form {
 .cartao-aguardando_pagamento { border-left-color: var(--color-outline); }
 
 /* ==========================================================================
+   Componentes - Fase 8 (Painel administrativo, financeiro e promoções)
+   ========================================================================== */
+
+.text-sucesso { color: var(--color-success) !important; }
+
+/* Cartões de métrica do dashboard */
+.cartao-metrica {
+  border-left: 3px solid var(--color-primary);
+}
+
+/* Linha do tempo da agenda do dia */
+.linha-tempo-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-outline-variant);
+  border-left: 3px solid transparent;
+  padding-left: 0.75rem;
+}
+
+.linha-tempo-item:last-child { border-bottom: none; }
+
+.linha-tempo-hora {
+  min-width: 52px;
+  font-weight: 600;
+}
+
+.linha-confirmado { border-left-color: var(--color-primary); }
+.linha-concluido  { border-left-color: var(--color-success); }
+.linha-cancelado, .linha-falta { border-left-color: var(--color-error); }
+.linha-aguardando_pagamento { border-left-color: var(--color-outline); }
+
+/* Cartão de agendamento na agenda administrativa */
+.cartao-agenda {
+  padding: 0.85rem 1rem;
+  background-color: var(--color-surface-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+}
+
+/* Calendário da visão mensal */
+.calendario-mes {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendario-cabecalho {
+  text-align: center;
+  padding: 0.4rem 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-on-surface-variant);
+  text-transform: uppercase;
+}
+
+.calendario-vazio { min-height: 56px; }
+
+.calendario-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0.35rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+  background-color: var(--color-surface-low);
+  color: var(--color-on-surface);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.calendario-dia:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(233, 193, 118, 0.08);
+  color: var(--color-primary);
+}
+
+.calendario-numero {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+.calendario-total {
+  margin-top: 2px;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.calendario-hoje {
+  border-color: var(--color-primary);
+  border-width: 2px;
+}
+
+.calendario-com-agenda { background-color: var(--color-surface-container); }
+
+/* Gráfico de barras do faturamento, feito só com CSS */
+.grafico-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 160px;
+  overflow-x: auto;
+  padding-top: 0.5rem;
+}
+
+.grafico-coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 0 22px;
+  height: 100%;
+}
+
+.grafico-barra {
+  width: 100%;
+  max-width: 28px;
+  background-color: var(--color-primary-container);
+  border-radius: 2px 2px 0 0;
+  transition: background-color 0.15s ease;
+}
+
+.grafico-coluna:hover .grafico-barra { background-color: var(--color-primary); }
+
+.grafico-rotulo {
+  margin-top: 4px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-surface-variant);
+}
+
+/* Promoções */
+.banner-promocao {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+}
+
+.etiqueta-desconto {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 8px;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.cartao-promocao {
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.cartao-promocao:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+/* Campo que existe só para permitir a cópia do link */
+.campo-copiavel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+
+.etiqueta-ativa   { background-color: rgba(129, 199, 132, 0.14); border-color: var(--color-success); color: var(--color-success); }
+.etiqueta-inativa { background-color: rgba(154, 143, 128, 0.14); border-color: var(--color-outline); color: var(--color-outline); }
+.etiqueta-expirada{ background-color: rgba(255, 180, 171, 0.14); border-color: var(--color-error); color: var(--color-error); }
+
+/* ==========================================================================
    Convite de instalação como aplicativo (PWA)
    ========================================================================== */
 

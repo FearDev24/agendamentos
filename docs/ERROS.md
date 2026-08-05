@@ -19,6 +19,23 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-05 - Estorno descontado duas vezes do lucro
+
+- Sintoma: Ao estornar um pagamento, o lucro líquido caía pelo dobro do valor devolvido.
+- Causa: `receitaNoPeriodo()` somava apenas pagamentos com status `aprovado`. Ao ser estornada, a linha muda para `estornado` e sai dessa soma — mas `resumoFinanceiro()` ainda subtraía o mesmo valor como estorno. O reembolso era abatido duas vezes.
+- Solução aplicada: Criado `receitaBrutaNoPeriodo()`, que soma `aprovado` **e** `estornado` (tudo que chegou a ser compensado). Agora vale sempre `receita_liquida = receita_bruta − estornos`, e a receita líquida coincide com a soma dos pagamentos aprovados.
+- Como evitar no futuro: Ao somar e subtrair a mesma grandeza em um cálculo, verificar se a subtração já não está implícita no filtro da soma.
+
+## 2026-08-05 - Erro fatal de PHP respondia HTTP 200 e passava nos testes
+
+- Sintoma: A tela `/admin/agenda` exibia apenas uma mensagem de erro fatal (`Call to undefined method AdminController::ehDataValida()`), mas a bateria de testes registrava a rota como acessível.
+- Causa: Com `display_errors` ligado, um erro fatal é servido com status **200**. As asserções verificavam somente o código de status, então uma tela completamente quebrada passava como aprovada.
+- Solução aplicada:
+  1. Criado o método ausente `ehDataValida()` no `AdminController`;
+  2. Adicionado `HttpClient::erroPhp()`, que detecta `Fatal error`, `Parse error`, `Uncaught`, `Warning`, `Notice` e `Deprecated` no corpo da resposta;
+  3. Criado o grupo 10 em `tests/teste_frontend.php`, que percorre **todas** as telas com cada perfil e falha se encontrar qualquer aviso do PHP ou se a página vier com conteúdo suspeito de truncamento.
+- Como evitar no futuro: Nenhuma asserção de "página acessível" deve se apoiar apenas no código HTTP. A varredura do grupo 10 cobre 27 telas e roda junto com as demais baterias.
+
 ## 2026-08-05 - Banner do PWA ficava invisível ao ser reexibido
 
 - Sintoma: O convite de instalação aparecia na primeira vez, mas ao ser dispensado e exibido novamente na mesma sessão ficava preso no primeiro quadro da animação (`translateY(100%)`, `opacity: 0`) — ocupando espaço, porém invisível.

@@ -1,7 +1,7 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 134 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 = **961 testes passando**.
+**Estado Atual**: Fase 8 (Painel Administrativo Operacional, Financeiro e Promoções) Concluída. Agenda administrativa nas três visões, agendamento manual com desconto justificado, controle de despesas com comprovantes, cálculo de lucro líquido, promoções com link público e exportação em CSV/Excel. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 183 = **1.191 testes passando**.
 
 ### Aplicativo instalável (PWA) — 05/08/2026
 O sistema pode ser instalado na tela inicial do celular e abre sem a barra do navegador.
@@ -28,16 +28,55 @@ As insígnias e o logotipo eram PNGs de 1024px pesando 1,8 MB cada, exibidos a 9
 - [x] **Fase 5 - Motor de Disponibilidade e Fluxo de Agendamento Público** *(Concluída em 04/08/2026)*
 - [x] **Fase 6 - Gateway de Pagamentos, Webhooks e Retenção Temporária** *(Concluída em 05/08/2026)*
 - [x] **Fase 7 - Áreas Restritas do Cliente e do Profissional** *(Concluída em 05/08/2026)*
-- [ ] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
+- [x] **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções** *(Concluída em 05/08/2026)*
 - [ ] **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
 
 ---
 
 ## Detalhamento da Fase Atual e Próximo Passo
 
-- **Fase Concluída**: Fase 7 - Áreas Restritas do Cliente e do Profissional
-- **Fase Pendente**: **Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções**
-- **Próximo Passo Recomendado**: Implementar a agenda administrativa (diária, semanal e mensal), o agendamento manual com desconto justificado, o controle de despesas com comprovantes, o cálculo de lucro líquido, as promoções públicas e a exportação em CSV/Excel.
+- **Fase Concluída**: Fase 8 - Painel Administrativo Operacional, Financeiro e Promoções
+- **Fase Pendente**: **Fase 9 - Transversais: Logs, Auditoria, E-mails Assíncronos e Polimento Final**
+- **Próximo Passo Recomendado**: Implementar a tela de consulta da auditoria, configurar o PHPMailer com SMTP real, criar o Cron Job de lembretes de 24h e 2h, e executar a bateria final contra os 12 Critérios de Aceitação do FSD.
+
+---
+
+## Entregas da Fase 8 (05/08/2026)
+
+### Arquivos criados
+| Arquivo | Função |
+|---|---|
+| `app/models/PromocaoModel.php` | Campanhas, vigência, cálculo de desconto e controle de usos |
+| `app/models/RelatorioModel.php` | Métricas do painel, financeiro e relatórios consolidados |
+| `app/helpers/ExportHelper.php` | Exportação em CSV e Excel, sem dependência externa |
+| `app/controllers/FinanceiroController.php` | Despesas, lucro líquido, relatórios e exportação |
+| `app/controllers/PromocaoController.php` | CRUD de campanhas e página pública compartilhável |
+| `app/views/admin/agenda.php` | Visões diária, semanal e mensal com agendamento manual |
+| `app/views/admin/financeiro.php` | Resumo, gráfico de evolução e lançamentos |
+| `app/views/admin/relatorios.php` | Desempenho, serviços e exportação |
+| `app/views/admin/promocoes.php` | Cadastro, link de compartilhamento e usos |
+| `app/views/public/promocao.php` | Página pública da campanha |
+| `tests/teste_fase8.php` | 183 testes de validação da Fase 8 |
+
+O `DespesaModel.php`, que existia sem versionamento desde o início do projeto, foi validado e incorporado.
+
+### Rotas adicionadas
+`/admin/agenda` (+ `manual`, `cancelar`) · `/admin/financeiro` (+ `despesa`, `despesa/excluir`, `categoria`, `exportar`) · `/admin/relatorios` (+ `exportar`) · `/admin/promocoes` (+ `salvar`, `excluir`) · `/promocao/{id}`
+
+### Regra financeira adotada
+**Receita é dinheiro efetivamente recebido**: só entram pagamentos compensados. Agendamento confirmado sem pagamento aprovado não conta como faturamento. Vale sempre `receita_liquida = receita_bruta − estornos`.
+
+### Permissões
+- **Agenda, bloqueios e promoções**: Administrador Principal e Limitado;
+- **Serviços, profissionais, financeiro, relatórios e auditoria**: exclusivos do Administrador Principal. O FSD marca o financeiro como "configurável" para o Limitado; enquanto a matriz de permissões individuais não existir, vale a regra mais conservadora.
+
+### Exportação
+CSV com BOM UTF-8 e separador ponto e vírgula (o que o Excel em português espera) e `.xls` como tabela HTML — sem PhpSpreadsheet, mantendo o projeto livre de dependências. Células iniciadas por `=`, `+`, `-` ou `@` são neutralizadas contra execução de fórmula no Excel.
+
+### Como validar
+```
+C:\xampp\php\php.exe tests/teste_fase8.php
+```
 
 ---
 

@@ -6,7 +6,42 @@
 document.addEventListener('DOMContentLoaded', () => {
     aplicarMascaraTelefone();
     validarConfirmacaoDeSenha();
+    ativarBotoesDeCopia();
 });
+
+/**
+ * Copia para a área de transferência o conteúdo do campo indicado em
+ * `data-alvo`. Vale para qualquer botão com `data-copiar`, como o link de
+ * compartilhamento de uma promoção.
+ */
+function ativarBotoesDeCopia() {
+    document.querySelectorAll('[data-copiar]').forEach((botao) => {
+        botao.addEventListener('click', async () => {
+            const campo = document.getElementById(botao.dataset.alvo);
+            if (!campo) {
+                return;
+            }
+
+            const rotuloOriginal = botao.textContent;
+
+            try {
+                await navigator.clipboard.writeText(campo.value);
+            } catch (erro) {
+                // Contingência para navegadores sem a Clipboard API
+                campo.select();
+                document.execCommand('copy');
+            }
+
+            botao.textContent = 'Copiado!';
+            botao.disabled = true;
+
+            setTimeout(() => {
+                botao.textContent = rotuloOriginal;
+                botao.disabled = false;
+            }, 2000);
+        });
+    });
+}
 
 /**
  * Máscara progressiva de telefone brasileiro: (00) 0000-0000 e (00) 00000-0000.

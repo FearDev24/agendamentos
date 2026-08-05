@@ -15,6 +15,46 @@
         </div>
     </section>
 
+    <!-- Promoções vigentes -->
+    <?php if (!empty($promocoes)): ?>
+    <section class="container py-4">
+        <h2 class="h4 text-gold mb-1">Promoções</h2>
+        <p class="text-muted-custom mb-4">Ofertas por tempo limitado.</p>
+
+        <div class="row g-3">
+            <?php foreach ($promocoes as $promo): ?>
+                <?php
+                $rotulo = $promo['tipo_desconto'] === 'percentual'
+                    ? number_format((float)$promo['valor_desconto'], 0, ',', '') . '% OFF'
+                    : FormatHelper::currency((float)$promo['valor_desconto']) . ' OFF';
+                ?>
+                <div class="col-md-6">
+                    <a href="<?= $baseUrl ?>/promocao/<?= (int)$promo['id'] ?>"
+                       class="cartao-promocao style-card h-100 d-block text-decoration-none overflow-hidden">
+                        <?php if (!empty($promo['imagem'])): ?>
+                            <img src="<?= $baseUrl ?>/public/uploads/promocoes/<?= urlencode($promo['imagem']) ?>"
+                                 alt="" class="banner-promocao">
+                        <?php endif; ?>
+
+                        <div class="p-4">
+                            <span class="etiqueta-desconto"><?= htmlspecialchars($rotulo, ENT_QUOTES, 'UTF-8') ?></span>
+                            <h3 class="h6 text-gold mt-2 mb-1"><?= htmlspecialchars($promo['titulo'], ENT_QUOTES, 'UTF-8') ?></h3>
+                            <p class="text-muted-custom mb-0">
+                                <small>
+                                    <?php if (!empty($promo['servico_nome'])): ?>
+                                        Em <?= htmlspecialchars($promo['servico_nome'], ENT_QUOTES, 'UTF-8') ?> ·
+                                    <?php endif; ?>
+                                    até <?= FormatHelper::dateBr($promo['data_fim']) ?>
+                                </small>
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <!-- Serviços -->
     <section class="container py-4">
         <h2 class="h4 text-gold mb-1">Nossos Serviços</h2>

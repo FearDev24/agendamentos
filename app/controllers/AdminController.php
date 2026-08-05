@@ -29,7 +29,215 @@ class AdminController extends BaseController {
     public function dashboard(): void {
         AuthHelper::requireAdmin();
 
-        $this->render('admin/dashboard', ['pageTitle' => 'Dashboard']);
+        $relatorios = new RelatorioModel();
+        $hoje = date('Y-m-d');
+
+        $this->render('admin/dashboard', [
+            'pageTitle'   => 'Dashboard',
+            'hoje'        => $hoje,
+            'metricas'    => $relatorios->metricasDoDia($hoje),
+            'agendaHoje'  => $relatorios->agendaDoPeriodo($hoje, $hoje),
+            'pendentes'   => $relatorios->pendentesDeConclusao($hoje),
+            // O lucro do mês só é exibido a quem pode ver dados financeiros
+            'resumoMes'   => AuthHelper::role() === 'admin_principal'
+                ? $relatorios->resumoFinanceiro(date('Y-m-01'), date('Y-m-t'))
+                : null,
+        ]);
+    }
+
+    // =================================================================
+    // AGENDA ADMINISTRATIVA
+    // =================================================================
+
+    /**
+     * Agenda global nas visões diária, semanal e mensal (docs/FSD.md 12.7).
+     */
+    public function agenda(): void {
+        AuthHelper::requireAdmin();
+
+        $relatorios = new RelatorioModel();
+
+        $visao = in_array($this->get('visao'), ['dia', 'semana', 'mes'], true) ? $this->get('visao') : 'dia';
+        $data = $this->ehDataValida($this->get('data')) ? $this->get('data') : date('Y-m-d');
+        $profissionalId = $this->get('profissional') !== '' ? (int)$this->get('profissional') : null;
+        $situacao = in_array($this->get('situacao'), AgendamentoModel::SITUACOES_TODAS, true) ? $this->get('situacao') : '';
+
+        [$de, $ate] = $this->intervaloDaVisao($visao, $data);
+
+        $this->render('admin/agenda', [
+            'pageTitle'      => 'Agenda Global',
+            'visao'          => $visao,
+            'data'           => $data,
+            'de'             => $de,
+            'ate'            => $ate,
+            'agendamentos'   => $relatorios->agendaDoPeriodo($de, $ate, $profissionalId, $situacao),
+            'contagemPorDia' => $relatorios->contagemPorDia($de, $ate, $profissionalId),
+            'profissionais'  => $this->profissionais->listar('', 'ativo'),
+            'catalogo'       => $this->servicos->listarAtivos(),
+            'filtroProfissional' => $this->get('profissional'),
+            'filtroSituacao' => $situacao,
+        ]);
+    }
+
+    /**
+     * Agendamento manual pelo balcão, com desconto justificado.
+     */
+    public function agendarManualmente(): void {
+        AuthHelper::requireAdmin();
+        $this->validarCsrf();
+
+        $agendamentos = new AgendamentoModel();
+        $usuarios = new UsuarioModel();
+
+        $email = mb_strtolower($this->post('cliente_email'));
+        $cliente = $usuarios->buscarPorEmail($email);
+
+        // Cliente novo é cadastrado na hora, com senha aleatória: ele define
+        // a própria senha depois, pelo fluxo de recuperação.
+        if ($cliente === null) {
+            $nome = $this->post('cliente_nome');
+            $telefone = $this->post('cliente_telefone');
+
+            if (mb_strlen($nome) < 3 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->comErro('Para um cliente novo, informe nome e e-mail válidos.', '/admin/agenda');
+            }
+
+            $id = $usuarios->criar([
+                'nome'     => $nome,
+                'email'    => $email,
+                'telefone' => $telefone !== '' ? $telefone : '(00) 00000-0000',
+                'senha'    => bin2hex(random_bytes(12)),
+                'perfil'   => 'cliente',
+            ]);
+
+            $cliente = $usuarios->buscarPorId($id);
+        }
+
+        if ($cliente['perfil'] !== 'cliente') {
+            $this->comErro('Esta conta não é de cliente e não pode receber agendamentos.', '/admin/agenda');
+        }
+
+        try {
+            $resultado = $agendamentos->criarManual(
+                (int)$cliente['id'],
+                (int)$this->post('profissional_id', '0'),
+                $this->post('data_agendamento'),
+                substr($this->post('hora'), 0, 5),
+                array_map('intval', $_POST['servicos'] ?? []),
+                [
+                    'tipo'          => $this->post('desconto_tipo', 'fixo'),
+                    'valor'         => str_replace(',', '.', $this->post('desconto_valor', '0')),
+                    'justificativa' => $this->post('desconto_justificativa'),
+                ]
+            );
+
+        } catch (RuntimeException $e) {
+            $this->comErro($e->getMessage(), '/admin/agenda?data=' . $this->post('data_agendamento'));
+        }
+
+        $this->auditoria->registrar(
+            AuditModel::CRIAR, 'agendamentos', $resultado['id'], null,
+            [
+                'origem'         => 'agendamento_manual',
+                'codigo'         => $resultado['codigo'],
+                'cliente'        => $cliente['email'],
+                'valor_bruto'    => $resultado['valor_bruto'],
+                'valor_desconto' => $resultado['valor_desconto'],
+                'justificativa'  => $this->post('desconto_justificativa'),
+            ]
+        );
+
+        $aviso = $resultado['valor_desconto'] > 0
+            ? ' Desconto de ' . FormatHelper::currency($resultado['valor_desconto']) . ' registrado na auditoria.'
+            : '';
+
+        $this->comSucesso(
+            'Agendamento ' . $resultado['codigo'] . ' criado.' . $aviso,
+            '/admin/agenda?data=' . $this->post('data_agendamento')
+        );
+    }
+
+    /**
+     * Cancelamento pelo estabelecimento: sempre com direito a reembolso.
+     */
+    public function cancelarAgendamento(): void {
+        AuthHelper::requireAdmin();
+        $this->validarCsrf();
+
+        $agendamentos = new AgendamentoModel();
+        $codigo = $this->post('codigo');
+        $motivo = $this->post('motivo');
+        $agendamento = $agendamentos->buscarPorCodigo($codigo);
+
+        if ($agendamento === null) {
+            $this->comErro('Agendamento não encontrado.', '/admin/agenda');
+        }
+
+        if (mb_strlen($motivo) < 3) {
+            $this->comErro('Informe o motivo do cancelamento.', '/admin/agenda');
+        }
+
+        try {
+            $resultado = $agendamentos->cancelarPeloEstabelecimento((int)$agendamento['id'], $motivo);
+        } catch (RuntimeException $e) {
+            $this->comErro($e->getMessage(), '/admin/agenda');
+        }
+
+        // Cancelamento pelo estabelecimento sempre devolve o valor pago
+        if ($resultado['reembolso'] > 0) {
+            $pagamentos = new PagamentoModel();
+            $pagamento = $pagamentos->buscarAprovadoDoAgendamento((int)$agendamento['id']);
+
+            if ($pagamento !== null) {
+                $pagamentos->estornar($pagamento['transacao_id']);
+            }
+        }
+
+        $this->auditoria->registrar(
+            'cancelamento_administrativo', 'agendamentos', (int)$agendamento['id'],
+            ['situacao' => $agendamento['situacao']],
+            ['motivo' => $motivo, 'reembolso' => $resultado['reembolso']]
+        );
+
+        MailHelper::send(
+            $agendamento['cliente_email'],
+            'Agendamento cancelado - ' . $agendamento['codigo_reserva'],
+            '<p>Seu agendamento de ' . FormatHelper::dateBr($agendamento['data_agendamento'])
+            . ' às ' . substr($agendamento['hora_inicio'], 0, 5) . ' foi cancelado pelo estabelecimento.</p>'
+            . '<p>Motivo: ' . htmlspecialchars($motivo, ENT_QUOTES, 'UTF-8') . '</p>'
+            . ($resultado['reembolso'] > 0
+                ? '<p>O reembolso de ' . FormatHelper::currency($resultado['reembolso']) . ' será processado.</p>'
+                : '')
+            . '<p>Entre em contato conosco para remarcar.</p>'
+        );
+
+        $this->comSucesso(
+            'Agendamento cancelado e cliente notificado.'
+            . ($resultado['reembolso'] > 0
+                ? ' Reembolso de ' . FormatHelper::currency($resultado['reembolso']) . ' registrado.'
+                : ''),
+            '/admin/agenda?data=' . $agendamento['data_agendamento']
+        );
+    }
+
+    /**
+     * Intervalo coberto por cada visão da agenda.
+     */
+    private function intervaloDaVisao(string $visao, string $data): array {
+        if ($visao === 'semana') {
+            // Semana de domingo a sábado, como no calendário brasileiro
+            $diaSemana = (int)date('w', strtotime($data));
+            $de = date('Y-m-d', strtotime($data . " -{$diaSemana} days"));
+            $ate = date('Y-m-d', strtotime($de . ' +6 days'));
+
+            return [$de, $ate];
+        }
+
+        if ($visao === 'mes') {
+            return [date('Y-m-01', strtotime($data)), date('Y-m-t', strtotime($data))];
+        }
+
+        return [$data, $data];
     }
 
     public function auditoria(): void {
@@ -399,6 +607,16 @@ class AdminController extends BaseController {
 
     private function ehHoraValida(string $hora): bool {
         return $hora !== '' && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $hora) === 1;
+    }
+
+    private function ehDataValida(string $data): bool {
+        if ($data === '') {
+            return false;
+        }
+
+        $d = DateTime::createFromFormat('Y-m-d', $data);
+
+        return $d !== false && $d->format('Y-m-d') === $data;
     }
 
     private function ehDataHoraValida(string $valor): bool {

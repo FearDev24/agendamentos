@@ -63,6 +63,37 @@ class HttpClient {
     }
 
     /**
+     * Detecta erro de PHP no corpo da resposta.
+     *
+     * Um erro fatal é servido com HTTP 200 quando `display_errors` está ligado,
+     * então verificar apenas o código de status deixa passar página quebrada.
+     */
+    public function erroPhp(): ?string {
+        $padroes = [
+            'Fatal error', 'Parse error', 'Uncaught',
+            'Warning:', 'Notice:', 'Deprecated:',
+        ];
+
+        foreach ($padroes as $padrao) {
+            $posicao = strpos($this->ultimoCorpo, $padrao);
+
+            if ($posicao !== false) {
+                return trim(strip_tags(substr($this->ultimoCorpo, $posicao, 160)));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Requisita a rota e devolve o erro de PHP encontrado, se houver.
+     */
+    public function conferirPagina(string $rota): ?string {
+        $this->get($rota);
+        return $this->erroPhp();
+    }
+
+    /**
      * Descarta os cookies, equivalente a abrir uma janela anônima.
      */
     public function novaSessao(): void {
