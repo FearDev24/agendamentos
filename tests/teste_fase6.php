@@ -173,7 +173,9 @@ $t->igual('Token vazio é tratado como recusa', 'recusado',
 // =====================================================================
 $t->grupo('4. MercadoPagoGateway: normalização e assinatura');
 
-$mp = new MercadoPagoGateway();
+// Credenciais injetadas: a assinatura é testada de forma isolada, sem depender
+// do que estiver em config.php nem do cache da GatewayFactory.
+$mp = new MercadoPagoGateway(['webhook_secret' => '']);
 $normalizar = (new ReflectionClass($mp))->getMethod('normalizarStatus');
 $normalizar->setAccessible(true);
 
@@ -190,8 +192,7 @@ foreach ($mapa as $origem => $esperado) {
 $t->verificar('Sem webhook_secret configurado a assinatura é recusada',
     !$mp->validarAssinatura(['x-signature' => 'ts=1,v1=abc'], '123'));
 
-$GLOBALS['config']['mercadopago']['webhook_secret'] = 'segredo-de-teste';
-$mpComSegredo = new MercadoPagoGateway();
+$mpComSegredo = new MercadoPagoGateway(['webhook_secret' => 'segredo-de-teste']);
 
 $ts = '1704908010';
 $idRecurso = '123456';

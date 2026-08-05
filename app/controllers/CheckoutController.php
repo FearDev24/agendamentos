@@ -38,7 +38,7 @@ class CheckoutController extends BaseController {
             'emSandbox'   => GatewayFactory::emSandbox(),
             'valorDevido' => $this->agendamentos->valorDevido($agendamento),
             'saldoCredito'=> (new CreditoModel())->saldoDisponivel((int)$agendamento['cliente_id']),
-            'publicKey'   => $this->config['mercadopago']['public_key'] ?? '',
+            'publicKey'   => GatewayFactory::chavePublica(),
             'expirado'    => $this->reservaExpirada($agendamento),
         ]);
     }

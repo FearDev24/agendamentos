@@ -1,0 +1,10 @@
+# Bloqueia acesso direto via navegador à documentação interna do projeto
+# (FSD, plano de fases, status e registro de erros). São arquivos de trabalho
+# da equipe: não fazem parte da aplicação e não devem ficar públicos.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

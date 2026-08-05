@@ -19,10 +19,52 @@ class MercadoPagoGateway implements GatewayPagamento {
     private string $accessToken;
     private string $webhookSecret;
 
-    public function __construct() {
-        $config = $GLOBALS['config']['mercadopago'];
-        $this->accessToken = $config['access_token'] ?? '';
-        $this->webhookSecret = $config['webhook_secret'] ?? '';
+    /**
+     * @param array|null $credenciais Credenciais resolvidas pela GatewayFactory
+     *                                (painel administrativo ou config.php).
+     *                                Omitir faz o gateway resolvê-las sozinho.
+     */
+    public function __construct(?array $credenciais = null) {
+        $credenciais = $credenciais ?? GatewayFactory::credenciais();
+
+        $this->accessToken = $credenciais['access_token'] ?? '';
+        $this->webhookSecret = $credenciais['webhook_secret'] ?? '';
+    }
+
+    /**
+     * Valida as credenciais contra a API do Mercado Pago.
+     *
+     * Consulta os meios de pagamento da conta: é uma chamada de leitura, não
+     * movimenta nada e falha de imediato se o token estiver errado.
+     *
+     * @return array ['ok' => bool, 'mensagem' => string, 'meios' => int]
+     */
+    public function testarConexao(): array {
+        if ($this->accessToken === '') {
+            return ['ok' => false, 'mensagem' => 'Nenhum Access Token cadastrado.', 'meios' => 0];
+        }
+
+        try {
+            $resposta = $this->requisitar('GET', '/v1/payment_methods');
+
+            $aceitaPix = false;
+            foreach ($resposta as $meio) {
+                if (($meio['id'] ?? '') === 'pix') {
+                    $aceitaPix = true;
+                    break;
+                }
+            }
+
+            return [
+                'ok'       => true,
+                'mensagem' => 'Conexão estabelecida com sucesso.'
+                    . ($aceitaPix ? ' A conta aceita Pix.' : ' ATENÇÃO: a conta não tem Pix habilitado.'),
+                'meios'    => count($resposta),
+            ];
+
+        } catch (Throwable $e) {
+            return ['ok' => false, 'mensagem' => $e->getMessage(), 'meios' => 0];
+        }
     }
 
     public function nome(): string {

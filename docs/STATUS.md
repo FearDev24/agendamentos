@@ -1,7 +1,26 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: **PROJETO CONCLUÍDO — as 9 fases do `docs/PLANO.md` foram entregues.** A Fase 9 fechou os componentes transversais: tratamento global de erros, tela de auditoria com restauração de registros, PHPMailer com SMTP, Cron de lembretes automáticos e polimento de acessibilidade. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 + 160 = **1.376 testes passando**, incluindo a verificação dos 12 Critérios de Aceitação do FSD.
+**Estado Atual**: **PROJETO CONCLUÍDO — as 9 fases do `docs/PLANO.md` foram entregues.** A Fase 9 fechou os componentes transversais: tratamento global de erros, tela de auditoria com restauração de registros, PHPMailer com SMTP, Cron de lembretes automáticos e polimento de acessibilidade. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 + 160 + 84 (integrações) = **1.460 testes passando**, incluindo a verificação dos 12 Critérios de Aceitação do FSD.
+
+### Vinculação da conta de pagamentos pelo painel — 05/08/2026
+Tela `/admin/integracoes`, exclusiva do Administrador Principal, onde o próprio estabelecimento cadastra as credenciais do Mercado Pago.
+
+**Desvio consciente da FSD seção 20.2**, que determina que as chaves do gateway fiquem apenas em `config.php`, "não editáveis via interface gráfica por motivos de segurança". O motivo do desvio é prático: quem instala o sistema normalmente não tem — e não deve ter — as credenciais da conta do cliente. Pedi-las por mensagem seria bem pior do que oferecer um campo próprio.
+
+Compensações adotadas para não perder a proteção original:
+- Access Token e segredo do webhook gravados **cifrados em AES-256-GCM** (`CriptografiaHelper`), com a chave em `config.php` — fora do banco. Vazar o banco não basta para vazar as credenciais;
+- Os segredos nunca voltam a ser exibidos: a tela mostra apenas os últimos dígitos mascarados, e campo em branco preserva o valor já gravado;
+- A auditoria registra a alteração e o ambiente da credencial, **jamais o valor do segredo**;
+- Validação de coerência: recusa Public Key e Access Token de ambientes diferentes, e exige o segredo do webhook em modo produção;
+- `GatewayFactory` resolve painel primeiro e `config.php` como reserva, com cache invalidado a cada gravação.
+
+### Demonstração remota sem hospedagem — 05/08/2026
+Para apresentar o sistema a um cliente sem contratar hospedagem, a máquina de desenvolvimento é publicada por túnel Cloudflare.
+
+**Cuidado obrigatório**: os *aliases* do XAMPP (`/phpmyadmin`, `/webalizer`, `/licenses`, `/php-cgi`) são declarados no escopo global do Apache e valem dentro de **qualquer** VirtualHost. Apontar o túnel para `http://localhost` publicaria o phpMyAdmin na internet, com o MySQL em `root` sem senha. O procedimento correto está em [DEMONSTRACAO.md](DEMONSTRACAO.md): VirtualHost dedicado na porta 8080, com os aliases bloqueados explicitamente.
+
+O `.htaccess` deixou de fixar `RewriteBase`, passando a funcionar tanto em subpasta quanto na raiz de um VirtualHost. Criado também `docs/.htaccess`: a documentação interna era o único diretório ainda legível pelo navegador.
 
 ### Aplicativo instalável (PWA) — 05/08/2026
 O sistema pode ser instalado na tela inicial do celular e abre sem a barra do navegador.

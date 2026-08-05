@@ -2,7 +2,10 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /sistemaBarbearia/
+
+    # Sem RewriteBase fixo: o Apache resolve o prefixo pela pasta onde este
+    # arquivo está. Assim as mesmas regras valem tanto em subpasta
+    # (localhost/sistemaBarbearia) quanto na raiz de um VirtualHost.
 
     # Redireciona requisições de arquivos e diretórios existentes diretamente para public/
     RewriteCond %{REQUEST_FILENAME} !-f

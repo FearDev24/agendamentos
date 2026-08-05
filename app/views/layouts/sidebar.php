@@ -22,6 +22,7 @@ if (in_array($userRole, AuthHelper::PERFIS_ADMIN, true)) {
         $itens[] = ['/admin/profissionais', 'Profissionais'];
         $itens[] = ['/admin/financeiro', 'Financeiro'];
         $itens[] = ['/admin/relatorios', 'Relatórios'];
+        $itens[] = ['/admin/integracoes', 'Integrações'];
         $itens[] = ['/admin/auditoria', 'Auditoria'];
     }
 } elseif ($userRole === 'profissional') {

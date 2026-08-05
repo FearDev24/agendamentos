@@ -168,6 +168,12 @@ $rotas = [
     'GET /admin/auditoria'       => [AdminController::class, 'auditoria'],
     'POST /admin/auditoria/restaurar' => [AdminController::class, 'restaurarRegistro'],
 
+    // Integrações: vinculação da conta de pagamentos pelo próprio estabelecimento
+    'GET /admin/integracoes'                => [IntegracaoController::class, 'index'],
+    'POST /admin/integracoes/mercadopago'   => [IntegracaoController::class, 'salvarMercadoPago'],
+    'POST /admin/integracoes/testar'        => [IntegracaoController::class, 'testarMercadoPago'],
+    'POST /admin/integracoes/desvincular'   => [IntegracaoController::class, 'desvincularMercadoPago'],
+
     // Cadastro de serviços (exclusivo do Administrador Principal)
     'GET /admin/servicos'            => [ServicoController::class, 'index'],
     'POST /admin/servicos/salvar'    => [ServicoController::class, 'salvar'],

@@ -18,7 +18,11 @@ return [
         // Produção (Hostnet): https://seudominio.com.br
         'url' => 'http://localhost/sistemaBarbearia',
         'env' => 'development', // 'development' ou 'production'
-        'timezone' => 'America/Sao_Paulo'
+        'timezone' => 'America/Sao_Paulo',
+        // Chave usada para cifrar as credenciais de integração gravadas no banco.
+        // Gere a sua com:  php -r "echo base64_encode(random_bytes(32));"
+        // ATENÇÃO: trocar esta chave torna ilegíveis as credenciais já salvas.
+        'chave_cripto' => 'COLE_AQUI_UMA_CHAVE_DE_32_BYTES_EM_BASE64'
     ],
     'db' => [
         'host' => 'localhost',
