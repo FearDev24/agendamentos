@@ -1070,3 +1070,66 @@ summary:focus-visible,
     padding: 0 !important;
   }
 }
+
+/* ==========================================================================
+   Barra de navegação
+   ========================================================================== */
+
+/*
+ * O ícone do menu sanfonado do Bootstrap é um SVG de traço escuro, pensado
+ * para barras claras. Sobre o Midnight Slate ele ficava preto no preto:
+ * só a borda do botão aparecia, e não havia como adivinhar onde clicar.
+ * Redesenhado com o traço em Bronze/Gold.
+ */
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23e9c176' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.navbar-toggler {
+  border-color: var(--color-primary);
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(233, 193, 118, 0.35);
+}
+
+/*
+ * Sem min-width:0 a marca não encolhe, e o nome do estabelecimento empurra o
+ * botão de entrar e o menu para uma segunda linha nas telas estreitas.
+ * Com isto o texto trunca com reticências e tudo cabe numa linha só.
+ */
+.navbar-brand,
+.navbar-brand > span {
+  min-width: 0;
+}
+
+/*
+ * Em telas largas a linha da marca volta a ocupar só o necessário, para que o
+ * menu fique ao lado dela — e não numa segunda linha, como no celular.
+ */
+@media (min-width: 992px) {
+  .navbar-linha-principal {
+    width: auto !important;
+  }
+}
+
+/* Menu aberto no celular: respiro entre os itens e separação da barra. */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--color-outline-variant);
+  }
+
+  .navbar-collapse .navbar-nav .nav-link {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  /* Perfil e "Sair" ganham linha própria, alinhados à esquerda como o resto. */
+  .navbar-collapse > .d-flex {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-outline-variant);
+  }
+}
