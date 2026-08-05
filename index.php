@@ -49,6 +49,10 @@ $rotas = [
     // Público
     'GET /'                    => [HomeController::class, 'index'],
 
+    // Aplicativo instalável: gerado por PHP porque o caminho base
+    // muda entre o ambiente local e a hospedagem de produção
+    'GET /manifest.webmanifest' => [PwaController::class, 'manifesto'],
+
     // Wizard de agendamento
     'GET /agendar'             => [AgendamentoController::class, 'passoServicos'],
     'POST /agendar/servicos'   => [AgendamentoController::class, 'salvarServicos'],

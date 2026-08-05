@@ -243,5 +243,159 @@ $t->verificar('Nenhuma View carrega recurso de domínio externo',
     empty($viewsComCdn), implode(', ', $viewsComCdn));
 
 // =====================================================================
+$t->grupo('8. Aplicativo instalável (PWA)');
+
+// --- Manifesto ---
+$http->get('/manifest.webmanifest');
+$t->igual('Manifesto responde 200', 200, $http->ultimoStatus);
+
+$manifesto = json_decode($http->ultimoCorpo, true);
+$t->verificar('Manifesto é JSON válido', is_array($manifesto));
+
+$cabecalhosManifesto = implode(' ', $http->ultimosHeaders);
+$t->verificar('Manifesto usa o Content-Type correto',
+    stripos($cabecalhosManifesto, 'application/manifest+json') !== false);
+
+$base = rtrim(parse_url($baseUrl, PHP_URL_PATH) ?? '', '/') . '/';
+
+$t->verificar('Manifesto declara nome', !empty($manifesto['name']));
+$t->igual('display é standalone (abre sem barra do navegador)', 'standalone', $manifesto['display'] ?? null);
+$t->igual('start_url aponta para a raiz da instalação', $base, $manifesto['start_url'] ?? null);
+$t->igual('scope cobre toda a aplicação', $base, $manifesto['scope'] ?? null);
+$t->verificar('theme_color usa a paleta Midnight Slate',
+    ($manifesto['theme_color'] ?? '') === '#0f1416');
+$t->verificar('Idioma declarado como pt-BR', ($manifesto['lang'] ?? '') === 'pt-BR');
+
+// --- Ícones ---
+$icones = $manifesto['icones'] ?? $manifesto['icons'] ?? [];
+$tamanhos = array_column($icones, 'sizes');
+$proposito = array_column($icones, 'purpose');
+
+$t->verificar('Manifesto declara ícone 192x192', in_array('192x192', $tamanhos, true));
+$t->verificar('Manifesto declara ícone 512x512', in_array('512x512', $tamanhos, true));
+$t->verificar('Manifesto declara ícone maskable (recorte do Android)',
+    in_array('maskable', $proposito, true));
+
+foreach ($icones as $icone) {
+    $rota = str_replace($base, '/', $icone['src']);
+    $ch = curl_init($baseUrl . $rota);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15]);
+    $corpo = curl_exec($ch);
+    $codigo = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $nome = basename($icone['src']);
+    $t->verificar("Ícone {$nome} ({$icone['sizes']}) responde 200",
+        $codigo === 200 && strlen((string)$corpo) > 500, 'HTTP ' . $codigo);
+    $t->verificar("Ícone {$nome} é um PNG válido",
+        substr((string)$corpo, 0, 4) === "\x89PNG");
+}
+
+// --- Service Worker ---
+$ch = curl_init($baseUrl . '/sw.js');
+curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 15]);
+$conteudoSw = curl_exec($ch);
+$codigoSw = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$tipoSw = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+curl_close($ch);
+
+$t->igual('sw.js responde 200', 200, $codigoSw);
+$t->verificar('sw.js é servido como JavaScript', stripos((string)$tipoSw, 'javascript') !== false);
+$t->verificar('sw.js fica na raiz do projeto (escopo total da aplicação)',
+    is_file(__DIR__ . '/../sw.js'));
+
+foreach (['install', 'activate', 'fetch'] as $evento) {
+    $t->verificar("Service Worker trata o evento `{$evento}`",
+        strpos((string)$conteudoSw, "addEventListener('" . $evento . "'") !== false);
+}
+
+$t->verificar('Service Worker calcula o escopo a partir do registro (portável)',
+    strpos((string)$conteudoSw, 'self.registration.scope') !== false);
+$t->verificar('Service Worker responde offline nas navegações',
+    strpos((string)$conteudoSw, 'paginaSemConexao') !== false);
+
+// Regra de segurança: a agenda nunca pode vir de cache
+$t->verificar('Service Worker NÃO faz cache de páginas HTML nem de API',
+    strpos((string)$conteudoSw, 'ehEstatico') !== false
+    && strpos((string)$conteudoSw, "fetch(requisicao).catch") !== false);
+
+// --- Marcações no HTML ---
+$http->get('/');
+$t->verificar('Página declara o manifesto', $http->corpoContem('rel="manifest"'));
+$t->verificar('Página declara theme-color', $http->corpoContem('name="theme-color"'));
+$t->verificar('Página declara apple-touch-icon', $http->corpoContem('rel="apple-touch-icon"'));
+$t->verificar('Página declara suporte a web app no iOS',
+    $http->corpoContem('apple-mobile-web-app-capable'));
+$t->verificar('Página declara favicon', $http->corpoContem('favicon-32.png'));
+$t->verificar('Página carrega o script de instalação', $http->corpoContem('pwa.js'));
+
+// --- Banner de convite ---
+$t->verificar('Banner de instalação existe no HTML', $http->corpoContem('id="convite-instalacao"'));
+$t->verificar('Banner começa oculto (só aparece se a instalação for possível)',
+    preg_match('/id="convite-instalacao"[^>]*\shidden/', $http->ultimoCorpo) === 1);
+$t->verificar('Banner oferece o botão de instalar', $http->corpoContem('id="btn-instalar-app"'));
+$t->verificar('Banner oferece dispensar', $http->corpoContem('id="btn-dispensar-instalacao"'));
+$t->verificar('Banner traz instruções para iPhone', $http->corpoContem('id="instrucoes-ios"'));
+$t->verificar('Instruções de iPhone começam ocultas',
+    preg_match('/id="instrucoes-ios"[^>]*\shidden/', $http->ultimoCorpo) === 1);
+
+// --- Script de instalação ---
+$pwaJs = file_get_contents($raizPublica . 'assets/js/pwa.js');
+
+foreach (['registrarServiceWorker', 'prepararConviteDeInstalacao', 'mostrarConvite',
+          'jaEstaInstalado', 'ehIos'] as $funcao) {
+    $t->verificar("pwa.js define {$funcao}()", strpos($pwaJs, 'function ' . $funcao) !== false);
+}
+
+$t->verificar('pwa.js escuta beforeinstallprompt', strpos($pwaJs, 'beforeinstallprompt') !== false);
+$t->verificar('pwa.js escuta appinstalled', strpos($pwaJs, 'appinstalled') !== false);
+$t->verificar('pwa.js respeita a dispensa do usuário', strpos($pwaJs, 'CHAVE_DISPENSA') !== false);
+// Procura a chamada (com parêntese), não a palavra: ela aparece no comentário
+// que explica justamente por que o rAF foi descartado aqui.
+$t->verificar('pwa.js não chama requestAnimationFrame para exibir o banner',
+    strpos($pwaJs, 'requestAnimationFrame(') === false);
+$t->verificar('pwa.js força reflow antes da transição',
+    strpos($pwaJs, 'void banner.offsetHeight') !== false);
+
+// --- CSS do banner ---
+$estilo = file_get_contents($raizPublica . 'assets/css/style.css');
+$t->verificar('CSS define o estado visível do banner por classe',
+    strpos($estilo, '.convite-instalacao.convite-visivel') !== false);
+$t->verificar('CSS esconde o banner de quem já instalou',
+    strpos($estilo, '(display-mode: standalone)') !== false);
+$t->verificar('CSS respeita quem prefere menos animação',
+    strpos($estilo, 'prefers-reduced-motion') !== false);
+$t->verificar('Banner não aparece na impressão do comprovante',
+    strpos($estilo, '.convite-instalacao {') !== false
+    && preg_match('/@media print.*?\.convite-instalacao/s', $estilo) === 1);
+
+// =====================================================================
+$t->grupo('9. Peso dos arquivos servidos ao cliente');
+
+// Imagens pesadas encarecem o carregamento no celular, justamente onde o PWA
+// mais importa. As insígnias são exibidas a 96px e o logotipo a 40px.
+$limites = [
+    'assets/img/logojablonskiprincipal.png'        => 150,
+    'assets/img/fidelidade/insigniabronze.png'     => 150,
+    'assets/img/fidelidade/insigniaprata.png'      => 150,
+    'assets/img/fidelidade/insigniaouro.png'       => 150,
+    'assets/img/fidelidade/insigniadiamante.png'   => 150,
+];
+
+foreach ($limites as $arquivo => $limiteKb) {
+    $caminho = $raizPublica . $arquivo;
+    $tamanhoKb = is_file($caminho) ? filesize($caminho) / 1024 : 0;
+    $t->verificar(basename($arquivo) . " abaixo de {$limiteKb} KB",
+        $tamanhoKb > 0 && $tamanhoKb < $limiteKb, round($tamanhoKb, 1) . ' KB');
+}
+
+$totalImagens = 0;
+foreach (glob($raizPublica . 'assets/img/*.png') as $img) { $totalImagens += filesize($img); }
+foreach (glob($raizPublica . 'assets/img/fidelidade/*.png') as $img) { $totalImagens += filesize($img); }
+
+$t->verificar('Conjunto de imagens da interface abaixo de 1 MB',
+    $totalImagens < 1048576, round($totalImagens / 1024, 1) . ' KB');
+
+// =====================================================================
 $http->encerrar();
 exit($t->resumo());

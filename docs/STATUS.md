@@ -1,7 +1,19 @@
 # Status do Projeto - AgendaBarber Web
 
 **Última atualização**: 05/08/2026  
-**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 69 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 = **896 testes passando**.
+**Estado Atual**: Fase 7 (Áreas Restritas do Cliente e do Profissional) Concluída. Painel "Meus Agendamentos" com comprovante, reagendamento e cancelamento sob a regra de 24h, créditos internos, insígnias de fidelidade, avaliações e painel de operação do profissional. Baterias de teste: 134 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 = **961 testes passando**.
+
+### Aplicativo instalável (PWA) — 05/08/2026
+O sistema pode ser instalado na tela inicial do celular e abre sem a barra do navegador.
+- `manifest.webmanifest` gerado por PHP (`PwaController`), para que `start_url` e `scope` acompanhem o diretório de instalação;
+- `sw.js` na raiz do projeto, com cache dos estáticos e página própria de "sem conexão". **Não** faz cache de HTML nem de API: agenda e pagamentos vêm sempre do servidor;
+- Banner de convite que respeita a dispensa por 14 dias e some para quem já instalou;
+- No iPhone, onde não existe instalador automático, exibe as instruções de "Compartilhar → Adicionar à Tela de Início".
+
+**Requisito de produção**: Service Worker só funciona em HTTPS (localhost é exceção). Sem certificado, a instalação não é oferecida.
+
+### Otimização de imagens — 05/08/2026
+As insígnias e o logotipo eram PNGs de 1024px pesando 1,8 MB cada, exibidos a 96px e 40px. Redimensionados para 256px: **8,76 MB → 383 KB (96% menor)**. A bateria de front-end passou a impor um teto de 150 KB por imagem.
 
 > **Correção crítica em 05/08/2026**: o `bootstrap.bundle.min.js` era um placeholder de 175 bytes desde a Fase 1, deixando inertes todos os botões dependentes de Bootstrap (cancelar, concluir atendimento, abas do checkout, menu mobile). Instalado o Bootstrap 5.3.3 real, criado o versionamento de assets contra cache e adicionada a bateria `tests/teste_frontend.php`. Detalhes em [ERROS.md](ERROS.md).
 

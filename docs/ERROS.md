@@ -19,6 +19,14 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-05 - Banner do PWA ficava invisível ao ser reexibido
+
+- Sintoma: O convite de instalação aparecia na primeira vez, mas ao ser dispensado e exibido novamente na mesma sessão ficava preso no primeiro quadro da animação (`translateY(100%)`, `opacity: 0`) — ocupando espaço, porém invisível.
+- Causa: A entrada era feita por `@keyframes` disparado pela troca do atributo `hidden`. Uma animação CSS não reexecuta de forma confiável nessa condição.
+- Solução aplicada: Substituída por transição comandada pela classe `.convite-visivel`. A classe entra após um reflow forçado (`void banner.offsetHeight`), que registra o estado inicial e faz a transição acontecer.
+- Detalhe adicional: a primeira tentativa usava `requestAnimationFrame` para aplicar a classe, o que também falha — o rAF **não dispara em abas em segundo plano**, e o banner ficaria permanentemente invisível para quem abrisse o site em outra aba. O reflow forçado é síncrono e não tem essa limitação.
+- Como evitar no futuro: Para revelar elementos, usar transição sobre classe com reflow forçado, nunca `@keyframes` atrelado a `hidden` nem `requestAnimationFrame`.
+
 ## 2026-08-05 - Bootstrap JS era um stub: nenhum botão interativo funcionava
 
 - Sintoma: Clicar em "Cancelar" no painel do cliente não abria o formulário de cancelamento. O mesmo ocorria com "Concluir Atendimento" na agenda do profissional, com as abas Pix/Cartão do checkout e com o menu de navegação no celular.

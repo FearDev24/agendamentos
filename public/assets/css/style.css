@@ -620,6 +620,89 @@ textarea.campo-form {
 .cartao-falta      { border-left-color: var(--color-error); }
 .cartao-aguardando_pagamento { border-left-color: var(--color-outline); }
 
+/* ==========================================================================
+   Convite de instalação como aplicativo (PWA)
+   ========================================================================== */
+
+.convite-instalacao {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  padding: 0.75rem 0;
+  background-color: var(--color-surface-high);
+  border-top: 1px solid var(--color-primary);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.35);
+
+  /* Estado de repouso: fora da tela. A entrada é feita por transição
+     comandada pela classe `.convite-visivel`, e não por `animation`.
+     Uma animação disparada por troca de `hidden` não reexecuta de forma
+     confiável, deixando o elemento preso no primeiro quadro (invisível). */
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.28s ease-out, opacity 0.28s ease-out;
+}
+
+.convite-instalacao.convite-visivel {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.convite-instalacao[hidden] {
+  display: none;
+}
+
+.convite-icone {
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* No celular o convite precisa ser discreto: ocupa pouca altura e os
+   botões ficam lado a lado, com área de toque confortável. */
+@media (max-width: 575px) {
+  .convite-instalacao {
+    padding: 0.6rem 0;
+  }
+
+  .convite-instalacao .container {
+    gap: 0.6rem !important;
+  }
+
+  .convite-icone {
+    width: 36px;
+    height: 36px;
+  }
+
+  .convite-instalacao strong {
+    font-size: 14px;
+  }
+
+  .convite-instalacao small {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .convite-instalacao .d-flex.gap-2 {
+    width: 100%;
+  }
+
+  .convite-instalacao .d-flex.gap-2 .btn {
+    flex: 1;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* Quem já instalou nunca deve ver o convite, mesmo que o JS falhe */
+@media (display-mode: standalone) {
+  .convite-instalacao { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .convite-instalacao { transition: none; }
+}
+
 /* Comprovante: impressão em papel branco, sem elementos de navegação */
 @media print {
   body {
@@ -627,7 +710,7 @@ textarea.campo-form {
     color: #000000 !important;
   }
 
-  header, footer.footer, .nao-imprimir, .style-sidebar {
+  header, footer.footer, .nao-imprimir, .style-sidebar, .convite-instalacao {
     display: none !important;
   }
 

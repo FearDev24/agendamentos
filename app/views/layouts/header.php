@@ -12,6 +12,18 @@ $csrf = SessionHelper::generateCsrfToken();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? $appName, ENT_QUOTES, 'UTF-8') ?></title>
+
+    <!-- Aplicativo instalável (PWA) -->
+    <link rel="manifest" href="<?= $baseUrl ?>/manifest.webmanifest">
+    <meta name="theme-color" content="#0f1416">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<?= htmlspecialchars($appName, ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="apple-touch-icon" href="<?= FormatHelper::asset('assets/img/pwa/apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= FormatHelper::asset('assets/img/pwa/favicon-32.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= FormatHelper::asset('assets/img/pwa/favicon-16.png') ?>">
+
     <!-- Bootstrap 5 CSS Local -->
     <link rel="stylesheet" href="<?= FormatHelper::asset('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
     <!-- Estilos Globais do Design System (Elevated Grooming & Wellness) -->
