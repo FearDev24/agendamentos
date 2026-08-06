@@ -18,9 +18,14 @@
 # Desativa a listagem pública de diretórios
 Options -Indexes
 
-# Adiciona cabeçalhos de segurança básicos
+# Cabeçalhos de segurança para arquivos servidos direto pelo Apache (imagens,
+# CSS, JS), que não passam pelo index.php. As rotas da aplicação recebem estes
+# e mais a Content-Security-Policy e o HSTS, definidos no index.php.
+#
+# O X-XSS-Protection foi removido: o filtro que ele acionava não existe mais
+# nos navegadores atuais e, onde ainda existe, já causou vulnerabilidades.
 <IfModule mod_headers.c>
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-Content-Type-Options "nosniff"
-    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

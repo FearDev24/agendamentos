@@ -17,8 +17,67 @@ class AuthHelper {
     // Estado da sessão
     // -----------------------------------------------------------------
 
+    /** Evita repetir a consulta de validade a cada chamada de check(). */
+    private static bool $sessaoConferida = false;
+
     public static function check(): bool {
-        return SessionHelper::has('user_id');
+        if (!SessionHelper::has('user_id')) {
+            return false;
+        }
+
+        if (!self::$sessaoConferida) {
+            self::$sessaoConferida = true;
+
+            if (!self::sessaoAindaVale()) {
+                SessionHelper::destroy();
+                SessionHelper::init();
+                SessionHelper::set('flash_erro', 'Sua senha foi alterada. Entre novamente.');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Uma sessão iniciada antes da última troca de senha deixa de valer.
+     *
+     * É o que faz a redefinição de senha realmente expulsar quem já estava
+     * autenticado — sem isto, no cenário que motiva a troca (conta invadida)
+     * o invasor seguia dentro com a sessão dele.
+     */
+    private static function sessaoAindaVale(): bool {
+        $logadoEm = SessionHelper::get('logado_em');
+
+        if ($logadoEm === null) {
+            return true;
+        }
+
+        try {
+            $stmt = Database::getConnection()->prepare(
+                'SELECT senha_alterada_em FROM usuarios WHERE id = :id AND deleted_at IS NULL'
+            );
+            $stmt->execute([':id' => self::id()]);
+            $alteradaEm = $stmt->fetchColumn();
+
+        } catch (Throwable $e) {
+            // Banco indisponível ou coluna ainda não migrada: não é motivo
+            // para derrubar quem está usando o sistema.
+            return true;
+        }
+
+        // Sem linha: a conta sumiu (excluída) entre uma requisição e outra.
+        if ($alteradaEm === false) {
+            return false;
+        }
+
+        // Coluna nula significa "senha nunca trocada desde o cadastro" — e não
+        // conta inválida. Confundir os dois derrubaria todo usuário novo.
+        if ($alteradaEm === null) {
+            return true;
+        }
+
+        return strtotime((string)$alteradaEm) <= strtotime((string)$logadoEm);
     }
 
     public static function id(): ?int {

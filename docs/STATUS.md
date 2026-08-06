@@ -1,7 +1,27 @@
 # Status do Projeto - AgendaBarber Web
 
-**Última atualização**: 05/08/2026  
-**Estado Atual**: **PROJETO CONCLUÍDO — as 9 fases do `docs/PLANO.md` foram entregues.** A Fase 9 fechou os componentes transversais: tratamento global de erros, tela de auditoria com restauração de registros, PHPMailer com SMTP, Cron de lembretes automáticos e polimento de acessibilidade. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 + 160 + 84 (integrações) = **1.460 testes passando**, incluindo a verificação dos 12 Critérios de Aceitação do FSD.
+**Última atualização**: 06/08/2026  
+**Estado Atual**: **PROJETO CONCLUÍDO — as 9 fases do `docs/PLANO.md` foram entregues.** A Fase 9 fechou os componentes transversais: tratamento global de erros, tela de auditoria com restauração de registros, PHPMailer com SMTP, Cron de lembretes automáticos e polimento de acessibilidade. Baterias de teste: 181 (front-end) + 111 + 149 + 128 + 153 + 132 + 154 + 208 + 160 + 84 (integrações) + 46 (segurança) = **1.510 testes passando**, incluindo a verificação dos 12 Critérios de Aceitação do FSD.
+
+### Revisão de segurança — 06/08/2026
+Auditoria do sistema completo antes da publicação. Seis correções, cobertas por `tests/teste_seguranca.php` (46 testes). Detalhes de cada uma em [ERROS.md](ERROS.md).
+
+| Achado | Gravidade | Correção |
+|---|---|---|
+| Cookie de sessão sem flag `Secure` | Alta | Ativada sob HTTPS, detectando o protocolo pela `app.url` (e não por `$_SERVER['HTTPS']`, que não enxerga TLS atrás de proxy) |
+| Redefinir senha não expulsava sessões abertas | Média | Migration 007 (`senha_alterada_em`) comparada com o `logado_em` da sessão |
+| Recuperação de senha sem limite de tentativas | Média | Máximo de 5 pedidos por IP a cada hora, com resposta indistinguível da normal |
+| Sem `Content-Security-Policy` | Média | Política restritiva; `unsafe-inline` permanece em scripts e estilos, pendente de refatoração das Views para `nonce` |
+| Sem HSTS | Média | Enviado apenas sob HTTPS |
+| Sessão sem expiração por inatividade | Média | 2 horas |
+| Cookie de sessão sobrevivia ao logout | Baixa | `destroy()` passou a expirá-lo |
+| `X-XSS-Protection` obsoleto | Baixa | Removido do `index.php` e do `.htaccess` |
+| Nome de arquivo enviado derivado de `md5(uniqid(rand()))` | Baixa | Trocado por `random_bytes`; pasta de destino restrita por expressão regular contra travessia |
+
+**Pendências conhecidas** (não corrigidas, por exigirem decisão ou refatoração maior):
+- `unsafe-inline` na CSP — remover exige converter os `<script>` e `style=` embutidos nas Views para `nonce`;
+- Tokens de recuperação de senha ficam em texto claro no banco (janela de 1 hora). Guardá-los com hash seria mais seguro;
+- Não há segundo fator para os perfis administrativos.
 
 ### Vinculação da conta de pagamentos pelo painel — 05/08/2026
 Tela `/admin/integracoes`, exclusiva do Administrador Principal, onde o próprio estabelecimento cadastra as credenciais do Mercado Pago.

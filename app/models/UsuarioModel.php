@@ -51,8 +51,8 @@ class UsuarioModel extends BaseModel {
      */
     public function criar(array $dados): int {
         $this->consultar(
-            'INSERT INTO usuarios (nome, email, senha_hash, telefone, foto, perfil, status)
-             VALUES (:nome, :email, :senha_hash, :telefone, :foto, :perfil, :status)',
+            'INSERT INTO usuarios (nome, email, senha_hash, senha_alterada_em, telefone, foto, perfil, status)
+             VALUES (:nome, :email, :senha_hash, NOW(), :telefone, :foto, :perfil, :status)',
             [
                 ':nome'       => trim($dados['nome']),
                 ':email'      => mb_strtolower(trim($dados['email'])),
@@ -82,8 +82,11 @@ class UsuarioModel extends BaseModel {
     }
 
     public function atualizarSenha(int $id, string $novaSenha): bool {
+        // senha_alterada_em derruba as sessões abertas antes desta troca
+        // (ver AuthHelper::check e migration 007).
         return $this->consultar(
-            'UPDATE usuarios SET senha_hash = :hash, token_recuperacao = NULL, token_expiracao = NULL
+            'UPDATE usuarios SET senha_hash = :hash, senha_alterada_em = NOW(),
+                    token_recuperacao = NULL, token_expiracao = NULL
              WHERE id = :id AND deleted_at IS NULL',
             [':hash' => password_hash($novaSenha, PASSWORD_BCRYPT), ':id' => $id]
         )->rowCount() > 0;

@@ -19,12 +19,18 @@ class LogModel {
     public const CSRF_INVALIDO       = 'csrf_token_invalido';
     public const ACESSO_NEGADO_RBAC  = 'acesso_negado_rbac';
     public const SENHA_REDEFINIDA    = 'senha_redefinida';
+    public const RECUPERACAO_PEDIDA  = 'recuperacao_senha_solicitada';
+    public const RECUPERACAO_BARRADA = 'recuperacao_senha_bloqueada';
     public const CONTA_EXCLUIDA      = 'conta_excluida';
 
     /** Máximo de tentativas de login antes do bloqueio temporário */
     public const MAX_TENTATIVAS = 5;
     /** Duração do bloqueio, em minutos */
     public const MINUTOS_BLOQUEIO = 15;
+
+    /** Pedidos de recuperação de senha tolerados por IP a cada hora. */
+    public const MAX_RECUPERACOES = 5;
+    public const MINUTOS_RECUPERACAO = 60;
 
     /**
      * Grava um evento em `security_logs`.
@@ -99,6 +105,34 @@ class LogModel {
      */
     public static function estaBloqueado(string $email): bool {
         return self::tentativasRecentes($email) >= self::MAX_TENTATIVAS;
+    }
+
+    /**
+     * Quantas vezes este IP disparou um evento na janela informada.
+     *
+     * Diferente de tentativasRecentes(), não olha o e-mail: serve para conter
+     * abuso em que o alvo muda a cada requisição — como pedir redefinição de
+     * senha para uma lista de endereços.
+     */
+    public static function eventosRecentesDoIp(string $evento, int $minutos): int {
+        try {
+            $stmt = Database::getConnection()->prepare(
+                'SELECT COUNT(*) FROM security_logs
+                 WHERE evento = :evento
+                   AND ip_address = :ip
+                   AND created_at > DATE_SUB(NOW(), INTERVAL :minutos MINUTE)'
+            );
+            $stmt->bindValue(':evento', $evento);
+            $stmt->bindValue(':ip', self::ip());
+            $stmt->bindValue(':minutos', $minutos, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return (int)$stmt->fetchColumn();
+
+        } catch (Throwable $e) {
+            self::contingenciaArquivo('[security_logs] Falha ao contar eventos: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     /**

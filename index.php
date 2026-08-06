@@ -88,8 +88,41 @@ register_shutdown_function(function () use ($config): void {
 // Cabeçalhos de segurança HTTP (docs/FSD.md seção 24)
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
-header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+
+// O X-XSS-Protection foi removido de propósito: o filtro que ele acionava não
+// existe mais nos navegadores atuais e, onde ainda existe, já causou
+// vulnerabilidades próprias. Quem protege contra XSS aqui é o escape na saída
+// e a política abaixo.
+
+/**
+ * Content Security Policy.
+ *
+ * Todo recurso é local (não há CDN), então a origem própria basta.
+ * 'unsafe-inline' permanece nos estilos e scripts porque as Views usam
+ * atributos style e blocos <script> embutidos; retirá-lo exige refatorar as
+ * telas e passar a usar nonce.
+ * frame-ancestors repete o X-Frame-Options para navegadores que já o ignoram.
+ */
+header(
+    "Content-Security-Policy: "
+    . "default-src 'self'; "
+    . "script-src 'self' 'unsafe-inline'; "
+    . "style-src 'self' 'unsafe-inline'; "
+    . "img-src 'self' data:; "
+    . "font-src 'self'; "
+    . "connect-src 'self'; "
+    . "form-action 'self'; "
+    . "base-uri 'self'; "
+    . "object-src 'none'; "
+    . "frame-ancestors 'self'"
+);
+
+// HSTS apenas sob HTTPS: enviá-lo em HTTP não tem efeito, e ativá-lo num
+// ambiente sem certificado deixaria o domínio inacessível no navegador.
+if (SessionHelper::ehHttps()) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
 
 SessionHelper::init();
 

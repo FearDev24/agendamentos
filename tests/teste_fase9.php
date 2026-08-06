@@ -540,7 +540,14 @@ $t->grupo('CA 9. Uploads seguros');
 $uploadPhp = file_get_contents($raiz . '/app/helpers/UploadHelper.php');
 $t->verificar('Validação real de MIME-type', strpos($uploadPhp, 'finfo_file') !== false);
 $t->verificar('Limite de 5MB aplicado', strpos($uploadPhp, '5242880') !== false);
-$t->verificar('Renomeação por hash', strpos($uploadPhp, 'md5(uniqid') !== false);
+// O nome tem de ser imprevisível, e não apenas "diferente": md5(uniqid(rand()))
+// deriva do relógio e de um gerador fraco, sendo passível de adivinhação.
+$t->verificar('Nome do arquivo vem de gerador criptográfico',
+    strpos($uploadPhp, 'random_bytes') !== false);
+$t->verificar('Nome do arquivo não usa gerador previsível',
+    strpos($uploadPhp, 'uniqid') === false && strpos($uploadPhp, 'rand()') === false);
+$t->verificar('Pasta de destino é restrita a um formato seguro',
+    strpos($uploadPhp, 'preg_match') !== false);
 
 $htaccessUploads = file_get_contents($raiz . '/public/uploads/.htaccess');
 $t->verificar('Execução de PHP desativada em uploads',

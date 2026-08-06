@@ -30,9 +30,19 @@ class UploadHelper {
             return null;
         }
 
-        // Renomeia o arquivo com UUID/MD5 seguro
-        $newName = md5(uniqid((string)rand(), true)) . '.' . $extension;
-        $destination = __DIR__ . '/../../public/uploads/' . trim($targetFolder, '/') . '/' . $newName;
+        // A pasta de destino hoje é sempre uma constante do código, mas basta
+        // um chamador futuro repassar entrada do usuário para que "../" leve
+        // o arquivo para fora de uploads/ — onde o .htaccess que bloqueia a
+        // execução de PHP não vale. Só letras, números, hífen e sublinhado.
+        $targetFolder = trim($targetFolder, '/');
+
+        if ($targetFolder === '' || preg_match('/^[A-Za-z0-9_-]+$/', $targetFolder) !== 1) {
+            return null;
+        }
+
+        // Renomeia o arquivo com nome aleatório imprevisível
+        $newName = bin2hex(random_bytes(16)) . '.' . $extension;
+        $destination = __DIR__ . '/../../public/uploads/' . $targetFolder . '/' . $newName;
 
         if (!is_dir(dirname($destination))) {
             mkdir(dirname($destination), 0755, true);

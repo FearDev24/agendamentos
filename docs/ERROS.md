@@ -19,6 +19,34 @@ Este arquivo contém o registro histórico de erros encontrados e corrigidos dur
 
 ## Histórico de Ocorrências
 
+## 2026-08-06 - Cookie de sessão sem a flag Secure
+
+- Sintoma: Nenhum. Falha silenciosa, encontrada na revisão de segurança anterior à publicação.
+- Causa: `SessionHelper::init()` definia `httponly`, `use_only_cookies` e `samesite`, mas não `session.cookie_secure`. Sob HTTPS, bastaria uma única requisição `http://` para o identificador de sessão trafegar em texto claro e ser capturado na rede.
+- Solução aplicada: `session.cookie_secure` passa a ser ativado quando a aplicação roda sob HTTPS. A verificação usa o esquema da `app.url` configurada, e **não** `$_SERVER['HTTPS']`: atrás de um túnel ou proxy reverso o PHP recebe a conexão interna em HTTP e não enxergaria o TLS. O `destroy()` também passou a expirar o cookie, que antes permanecia no navegador após o logout.
+- Como evitar no futuro: Ao configurar cookies, tratar as quatro flags como um conjunto — `HttpOnly`, `Secure`, `SameSite` e `use_only_cookies`. A bateria `tests/teste_seguranca.php` agora confere cada uma, comparando com o protocolo em uso.
+
+## 2026-08-06 - Redefinição de senha não expulsava sessões abertas
+
+- Sintoma: Após redefinir a senha, sessões iniciadas antes da troca continuavam válidas.
+- Causa: A autenticação verificava apenas a presença de `user_id` na sessão. Nada relacionava a sessão à senha vigente, então trocar a senha não tinha efeito sobre sessões já estabelecidas — justamente no cenário que motiva a troca (conta comprometida), o invasor permanecia com acesso.
+- Solução aplicada: Migration 007 adiciona `usuarios.senha_alterada_em`, gravada em toda troca de senha. `AuthHelper::check()` compara essa marca com o `logado_em` guardado na sessão e descarta as anteriores. A consulta ocorre uma vez por requisição, com cache estático, porque `check()` é chamado várias vezes por página.
+- Como evitar no futuro: Toda credencial revogável precisa de um ponto de comparação no servidor; o estado da sessão sozinho não é revogável.
+
+## 2026-08-06 - Coluna nula tratada como conta inexistente derrubava usuários novos
+
+- Sintoma: Logo após a correção acima, o teste `Sessão inicial está autenticada` falhou: uma conta recém-criada não conseguia permanecer autenticada.
+- Causa: A migration preencheu `senha_alterada_em` apenas nas contas existentes. Contas criadas depois nasciam com a coluna nula, e a validação tratava `null` e `false` no mesmo `if` — nulo ("senha nunca trocada") era interpretado como "conta removida", invalidando a sessão.
+- Solução aplicada: Os dois casos foram separados: `false` (sem linha) invalida, `null` (nunca trocada) é válido. `UsuarioModel::criar()` passou a gravar `senha_alterada_em = NOW()`, eliminando o estado nulo em contas novas.
+- Como evitar no futuro: `fetchColumn()` devolve `false` para "sem linha" e `null` para "coluna nula" — são situações distintas e comparar com `==` ou agrupá-las num mesmo `if` apaga a diferença. Ao adicionar coluna por migration, cobrir também o caminho de criação de novos registros.
+
+## 2026-08-06 - X-XSS-Protection permanecia no .htaccess após remoção no PHP
+
+- Sintoma: O teste `X-XSS-Protection foi removido` falhou mesmo após a retirada do cabeçalho no `index.php`.
+- Causa: O cabeçalho era emitido em dois lugares. O `.htaccess` da raiz também o definia, para os arquivos estáticos servidos direto pelo Apache sem passar pelo Front Controller.
+- Solução aplicada: Removido também do `.htaccess`, que ganhou ainda o `Referrer-Policy` — os arquivos estáticos não o recebiam.
+- Como evitar no futuro: Cabeçalhos HTTP neste projeto têm duas origens (PHP e Apache). Ao alterar um, verificar as duas. O teste que pegou isto consulta a resposta HTTP real, e não o código-fonte — é o único jeito de detectar configuração duplicada.
+
 ## 2026-08-05 - Cron falhava ao somar dois INTERVAL no MariaDB
 
 - Sintoma: `database/cron_lembretes.php` abortava com erro 1064 de sintaxe SQL ao buscar os agendamentos da janela de lembrete.

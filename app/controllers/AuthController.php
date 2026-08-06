@@ -227,6 +227,23 @@ class AuthController extends BaseController {
             $this->comErro('Informe um e-mail válido.', '/recuperar-senha');
         }
 
+        // Sem este limite, um único IP dispara e-mails de redefinição para
+        // quantos endereços quiser: incomoda os titulares das contas e queima
+        // a reputação do domínio remetente. A mensagem final é a mesma do
+        // caminho normal, para não revelar que houve bloqueio.
+        if (LogModel::eventosRecentesDoIp(LogModel::RECUPERACAO_PEDIDA, LogModel::MINUTOS_RECUPERACAO)
+            >= LogModel::MAX_RECUPERACOES) {
+
+            LogModel::seguranca(LogModel::RECUPERACAO_BARRADA, $email);
+
+            $this->comSucesso(
+                'Se houver uma conta com este e-mail, enviamos um link de redefinição. Verifique sua caixa de entrada.',
+                '/login'
+            );
+        }
+
+        LogModel::seguranca(LogModel::RECUPERACAO_PEDIDA, $email);
+
         $usuario = $this->usuarios->buscarPorEmail($email);
 
         // Resposta idêntica exista ou não a conta, para não revelar cadastros
