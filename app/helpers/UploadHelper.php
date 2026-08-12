@@ -34,9 +34,11 @@ class UploadHelper {
         // um chamador futuro repassar entrada do usuário para que "../" leve
         // o arquivo para fora de uploads/ — onde o .htaccess que bloqueia a
         // execução de PHP não vale. Só letras, números, hífen e sublinhado.
-        $targetFolder = trim($targetFolder, '/');
-
-        if ($targetFolder === '' || preg_match('/^[A-Za-z0-9_-]+$/', $targetFolder) !== 1) {
+        // Validado como veio, sem normalizar: aparar as barras antes da
+        // verificação faria "/etc" virar "etc" e passar. Todos os chamadores
+        // usam nomes simples ('perfis', 'promocoes', 'servicos'...), então
+        // qualquer outra forma é sinal de erro ou de tentativa de abuso.
+        if (preg_match('/^[A-Za-z0-9_-]+$/', $targetFolder) !== 1) {
             return null;
         }
 

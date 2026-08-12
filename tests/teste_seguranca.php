@@ -195,9 +195,26 @@ $montarEnvio = function (string $destino) use ($arquivo): array {
     ];
 };
 
-foreach (['../', '../../app', 'promocoes/../../app', '..', '/etc', 'pasta com espaco'] as $malicioso) {
-    $t->igual("Pasta de destino '{$malicioso}' é recusada", null,
-        UploadHelper::process($montarEnvio($malicioso), $malicioso));
+// Só o retorno null NÃO prova rejeição: fora de uma requisição HTTP real o
+// move_uploaded_file() falha de qualquer jeito, e process() devolveria null
+// mesmo que a validação tivesse deixado passar. A prova é que nenhuma pasta
+// chegue a ser criada — foi assim que se descobriu que "/etc" era normalizado
+// para "etc" e criava o diretório antes de falhar.
+$raizUploads = __DIR__ . '/../public/uploads';
+
+$pastasDe = function () use ($raizUploads): array {
+    $itens = glob($raizUploads . '/*', GLOB_ONLYDIR) ?: [];
+    return array_map('basename', $itens);
+};
+
+$pastasAntes = $pastasDe();
+
+foreach (['../', '../../app', 'promocoes/../../app', '..', '/etc', 'etc/', 'pasta com espaco', ''] as $malicioso) {
+    $retorno = UploadHelper::process($montarEnvio($malicioso), $malicioso);
+
+    $t->igual("Pasta '{$malicioso}': process() devolve null", null, $retorno);
+    $t->igual("Pasta '{$malicioso}': nenhum diretório é criado",
+        $pastasAntes, $pastasDe());
 }
 
 $t->verificar('Extensão não permitida é recusada',
