@@ -38,6 +38,18 @@ $t->igual('Modo de erro configurado como EXCEPTION', PDO::ERRMODE_EXCEPTION, $pd
 $t->verificar('Prepared Statements reais (emulação desligada)', (int)$pdo->getAttribute(PDO::ATTR_EMULATE_PREPARES) === 0);
 $t->verificar('Singleton retorna a mesma instância', $pdo === Database::getConnection());
 
+// Metade das datas do sistema nasce no banco (NOW(), DATE_ADD) e a outra
+// metade no PHP (time(), date()), e as duas são comparadas entre si. Em
+// hospedagem o MySQL fica noutro servidor, e um fuso diferente faz a reserva
+// de 10 minutos nascer expirada. Ver docs/ERROS.md 13/08/2026.
+$relogios = $pdo->query('SELECT NOW() AS banco, @@session.time_zone AS fuso')->fetch();
+$deslocamentoEsperado = (new DateTime('now', new DateTimeZone(date_default_timezone_get())))->format('P');
+
+$t->igual('Sessão do MySQL usa o fuso do PHP', $deslocamentoEsperado, $relogios['fuso']);
+$t->verificar('Relógio do banco bate com o do PHP',
+    abs(strtotime($relogios['banco']) - time()) <= 2,
+    'diferença de ' . abs(strtotime($relogios['banco']) - time()) . 's');
+
 // ---------------------------------------------------------------------
 $t->grupo('2. Estrutura: as 20 tabelas do FSD + controle de migrations');
 

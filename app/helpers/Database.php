@@ -18,8 +18,35 @@ class Database {
         $dsn = "mysql:host={$db['host']};dbname={$db['dbname']};charset={$db['charset']}";
 
         self::$conexao = new PDO($dsn, $db['user'], $db['pass'], self::opcoesPadrao());
+        self::alinharFusoHorario(self::$conexao);
 
         return self::$conexao;
+    }
+
+    /**
+     * Faz o MySQL usar o mesmo fuso do PHP.
+     *
+     * Metade das datas do sistema nasce no banco (`NOW()`, `DATE_ADD`) e a
+     * outra metade no PHP (`time()`, `date()`), e as duas são comparadas entre
+     * si — a expiração da reserva, a janela dos lembretes, o corte de "hoje".
+     * No XAMPP isso passa despercebido porque banco e aplicação dividem a mesma
+     * máquina; numa hospedagem o MySQL costuma ficar em outro servidor, com
+     * outro fuso, e as comparações passam a mentir.
+     *
+     * O deslocamento é enviado em número (-03:00) e não pelo nome da zona:
+     * nomes exigem as tabelas de fuso carregadas no MySQL, o que raramente
+     * acontece em hospedagem compartilhada.
+     */
+    private static function alinharFusoHorario(PDO $conexao): void {
+        $agora = new DateTime('now', new DateTimeZone(date_default_timezone_get()));
+        $deslocamento = $agora->format('P'); // ex.: -03:00
+
+        try {
+            $conexao->exec("SET time_zone = '{$deslocamento}'");
+        } catch (Throwable $e) {
+            // Servidor que recusa a mudança: seguimos com o fuso dele. Melhor
+            // uma diferença de horário do que a aplicação inteira fora do ar.
+        }
     }
 
     /**
